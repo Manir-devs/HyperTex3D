@@ -1,0 +1,4 @@
+build/
+app/hypertex3d
+app/*.png
+app/*.ht3d
