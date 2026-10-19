@@ -1,9 +1,10 @@
 #!/bin/bash
 
 echo "[*] Setting up directories..."
-mkdir -p build app
+mkdir -p build app app/backups
 
-echo "[*] Compiling HyperTex3D..."
+echo "[*] Cleaning old object files & Compiling HyperTex3D Ultimate..."
+make clean
 make
 
 if [ $? -eq 0 ]; then

@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HyperTex3D — Hyperbuild 4D Voxel &amp; Organ Studio</title>
+    <meta
+      name="description"
+      content="High-performance 3D/4D voxel character, internal organ anatomy, and 4D Miner volumetric texture sheet studio for Hyperbuild 4D."
+    />
+    <meta property="og:title" content="HyperTex3D — Hyperbuild 4D Voxel &amp; Organ Studio" />
+    <meta
+      property="og:description"
+      content="High-performance 3D/4D voxel character, internal organ anatomy, and 4D Miner volumetric texture sheet studio for Hyperbuild 4D."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body data-state="startup">
+    <!-- 3D WebGL Viewport Canvas -->
+    <main id="viewport-container" aria-label="3D Voxel and Organ Viewport">
+      <canvas id="gl-canvas" data-testid="voxel-canvas"></canvas>
+      <!-- 2D Overlay for 3D Joint Labels, Crosshair & Selection Box -->
+      <div id="joint-labels-layer" aria-hidden="true"></div>
+      <div id="crosshair" class="hidden" aria-hidden="true">
+        <span class="ch-v"></span>
+        <span class="ch-h"></span>
+      </div>
+    </main>
+
+    <!-- ==================== STATE 1: STARTUP SCREEN ==================== -->
+    <section id="startup-screen" class="screen-overlay" aria-label="Startup Configuration">
+      <div class="startup-card">
+        <div class="startup-header">
+          <div class="brand-row">
+            <span class="engine-tag">HYPERBUILD 4D ENGINE</span>
+            <span class="sep">·</span>
+            <span class="engine-sub">4D MINER VOLUMETRIC PIPELINE</span>
+          </div>
+          <h1>HYPERTEX 3D — PRO VOXEL &amp; ORGAN STUDIO</h1>
+          <p class="startup-subtitle">
+            Enter Workspace X, Y, Z Dimensions or Design a 4D Articulated Character with Volumetric Internal Organs
+          </p>
+        </div>
+
+        <div class="axis-grid" role="group" aria-label="Workspace X Y Z Dimensions">
+          <div class="axis-col">
+            <label for="input-x" class="axis-label axis-x">WIDTH (X):</label>
+            <input
+              id="input-x"
+              type="number"
+              min="4"
+              max="128"
+              step="4"
+              value="32"
+              class="axis-input axis-x-border"
+              aria-label="Width X Dimension"
+            />
+            <div class="axis-step-row">
+              <button type="button" class="btn-step" data-axis="x" data-delta="-4" aria-label="Decrease Width X by 4">-4</button>
+              <button type="button" class="btn-step" data-axis="x" data-delta="4" aria-label="Increase Width X by 4">+4</button>
+            </div>
+          </div>
+
+          <div class="axis-col">
+            <label for="input-y" class="axis-label axis-y">HEIGHT (Y):</label>
+            <input
+              id="input-y"
+              type="number"
+              min="4"
+              max="128"
+              step="4"
+              value="32"
+              class="axis-input axis-y-border"
+              aria-label="Height Y Dimension"
+            />
+            <div class="axis-step-row">
+              <button type="button" class="btn-step" data-axis="y" data-delta="-4" aria-label="Decrease Height Y by 4">-4</button>
+              <button type="button" class="btn-step" data-axis="y" data-delta="4" aria-label="Increase Height Y by 4">+4</button>
+            </div>
+          </div>
+
+          <div class="axis-col">
+            <label for="input-z" class="axis-label axis-z">DEPTH (Z):</label>
+            <input
+              id="input-z"
+              type="number"
+              min="4"
+              max="128"
+              step="4"
+              value="32"
+              class="axis-input axis-z-border"
+              aria-label="Depth Z Dimension"
+            />
+            <div class="axis-step-row">
+              <button type="button" class="btn-step" data-axis="z" data-delta="-4" aria-label="Decrease Depth Z by 4">-4</button>
+              <button type="button" class="btn-step" data-axis="z" data-delta="4" aria-label="Increase Depth Z by 4">+4</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="preset-dims-row">
+          <span class="preset-label">Quick Sizes:</span>
+          <button type="button" class="btn-preset-dim" data-dims="16,16,16">16×16×16</button>
+          <button type="button" class="btn-preset-dim" data-dims="32,32,32">32×32×32</button>
+          <button type="button" class="btn-preset-dim" data-dims="48,72,32">48×72×32 (Rig)</button>
+          <button type="button" class="btn-preset-dim" data-dims="64,64,64">64×64×64</button>
+        </div>
+
+        <button type="button" id="btn-confirm-xyz" class="btn-primary-green">
+          CONFIRM XYZ SIZE &amp; START EDITOR (ENTER)
+        </button>
+
+        <button type="button" id="btn-design-character" class="btn-primary-orange">
+          DESIGN HYPERBUILD 4D CHARACTER (11 Outer Parts + 9 Internal Organs | 9 Joints)
+        </button>
+        <p class="char-caption">
+          Includes hollow anatomical body shell (4 Arms, 4 Legs, 2 Torso, 16×16 Head) + 9 Volumetric 3D Internal Organs (Brain, Heart, Lungs, Ribcage/Spine, Stomach, Liver, Intestines, Optic Nerves &amp; 4D Hyper-Gland)
+        </p>
+
+        <button type="button" id="btn-startup-backup" class="btn-primary-blue">
+          OPEN AUTO-BACKUP (Recover Crash - <span id="startup-backup-count">0</span> / 30 Saved)
+        </button>
+
+        <p class="backup-caption">
+          Auto-Backup runs every 5 seconds automatically in browser storage. Supports .ht3d binary &amp; 4D Miner PNG sheets.
+        </p>
+      </div>
+    </section>
+
+    <!-- ==================== STATE 2: BACKUP MANAGER SCREEN ==================== -->
+    <section id="backup-screen" class="screen-overlay hidden" aria-label="Recovery and Auto-Backup Manager">
+      <div class="backup-container">
+        <div class="backup-top-bar">
+          <div>
+            <h2>RECOVERY &amp; AUTO-BACKUP MANAGER (LAST 30 BACKUPS — EVERY 5 SEC)</h2>
+            <p>Click any backup below to restore your exact 3D voxel &amp; internal organ workspace immediately:</p>
+          </div>
+          <div class="backup-top-actions">
+            <button type="button" id="btn-force-backup-now" class="btn-hud btn-blue">SAVE SNAPSHOT NOW</button>
+            <button type="button" id="btn-backup-back" class="btn-hud btn-maroon">BACK (ESC)</button>
+          </div>
+        </div>
+        <div id="backup-list-grid" class="backup-grid" role="list"></div>
+      </div>
+    </section>
+
+    <!-- ==================== STATE 3: 2D PNG CROP & IMPORT SCREEN ==================== -->
+    <section id="import-2d-screen" class="screen-overlay hidden" aria-label="2D Texture Crop and Voxel Importer">
+      <div class="import-2d-layout">
+        <div class="import-canvas-area">
+          <div class="import-header-bar">
+            <div>
+              <h2>2D CROP &amp; SLICE IMPORTER (Drag mouse on image OR type values)</h2>
+              <p>Convert 2D PNG sprites or 4D Miner slice sheets directly into 3D Voxels</p>
+            </div>
+            <div class="import-header-btns">
+              <button type="button" id="btn-import-confirm" class="btn-hud btn-green">CONVERT TO 3D VOXELS (ENTER)</button>
+              <button type="button" id="btn-import-cancel" class="btn-hud btn-maroon">CANCEL (ESC)</button>
+            </div>
+          </div>
+          <div class="import-canvas-wrap" id="import-canvas-wrap">
+            <canvas id="import-preview-canvas"></canvas>
+          </div>
+        </div>
+        <aside class="import-sidebar">
+          <h3>CROP PROPERTIES</h3>
+          <div class="crop-field">
+            <label for="crop-x">X Pos:</label>
+            <input id="crop-x" type="number" min="0" value="0" />
+          </div>
+          <div class="crop-field">
+            <label for="crop-y">Y Pos:</label>
+            <input id="crop-y" type="number" min="0" value="0" />
+          </div>
+          <div class="crop-field">
+            <label for="crop-w">Width:</label>
+            <input id="crop-w" type="number" min="1" value="16" />
+          </div>
+          <div class="crop-field">
+            <label for="crop-h">Height:</label>
+            <input id="crop-h" type="number" min="1" value="16" />
+          </div>
+          <div class="crop-field">
+            <label for="crop-depth">Extrude Z Depth:</label>
+            <input id="crop-depth" type="number" min="1" max="32" value="1" />
+          </div>
+          <hr class="sidebar-divider" />
+          <div class="crop-actions-stack">
+            <label class="file-upload-btn">
+              CHOOSE .PNG FILE FROM DISK
+              <input type="file" id="import-file-input" accept="image/png,image/jpeg,image/webp" hidden />
+            </label>
+            <button type="button" id="btn-load-sample-organ-sheet" class="btn-hud btn-blue">
+              LOAD SAMPLE 4D ORGAN ATLAS
+            </button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ==================== EDITOR HUD: TOP BAR ==================== -->
+    <header id="top-hud" class="hidden" aria-label="Editor Top Controls">
+      <div class="hud-left-controls">
+        <div class="dropdown-anchor">
+          <button type="button" id="btn-file-menu" class="btn-hud" aria-expanded="false">FILE MENU</button>
+          <div id="file-menu-dropdown" class="dropdown-menu hidden" role="menu">
+            <button type="button" role="menuitem" data-action="save-project">Save Project (.ht3d)</button>
+            <button type="button" role="menuitem" data-action="save-as">Save As (.ht3d)...</button>
+            <button type="button" role="menuitem" data-action="export-png">Export 4D Miner Sheet &amp; Organ Rig (.png)...</button>
+            <button type="button" role="menuitem" data-action="import-png">Import PNG Texture / Slice</button>
+            <button type="button" role="menuitem" data-action="load-project">Load Project (.ht3d)</button>
+            <button type="button" role="menuitem" data-action="open-backups">Open Backup List</button>
+            <button type="button" role="menuitem" data-action="new-resize">New / Resize XYZ</button>
+          </div>
+        </div>
+
+        <button type="button" id="btn-open-backup" class="btn-hud btn-blue">OPEN BACKUP</button>
+        <button type="button" id="btn-toggle-shading" class="btn-hud btn-green">SHADING: ON</button>
+        <button type="button" id="btn-toggle-edges" class="btn-hud btn-slate">EDGES: ON</button>
+        <button type="button" id="btn-toggle-xray" class="btn-hud btn-purple" title="Make outer skin translucent to inspect internal 3D organs">
+          X-RAY SHELL: OFF
+        </button>
+        <button type="button" id="btn-toggle-cutaway" class="btn-hud btn-slate" title="Slice outer body shell to expose internal 3D organs">
+          CUTAWAY: OFF
+        </button>
+        <button type="button" id="btn-toggle-mirror" class="btn-hud btn-slate" title="Mirror edits across X axis">
+          MIRROR X: OFF
+        </button>
+        <button type="button" id="btn-undo" class="btn-hud btn-icon" title="Undo (Ctrl+Z)" aria-label="Undo">UNDO</button>
+        <button type="button" id="btn-redo" class="btn-hud btn-icon" title="Redo (Ctrl+Y)" aria-label="Redo">REDO</button>
+      </div>
+
+      <div class="hud-center-info">
+        <span id="hud-coords-text" class="coords-readout">XYZ: [-, -, -] (48x72x32) | 3D CUBE</span>
+      </div>
+
+      <div class="hud-right-status">
+        <span id="fps-counter" class="fps-badge">60 FPS</span>
+      </div>
+    </header>
+
+    <!-- Floating Status Toast Badge (Below Top HUD, zero overlap) -->
+    <div id="status-toast" class="status-toast-floating" role="status" aria-live="polite">Ready</div>
+
+    <!-- ==================== HYPERPLANE SLICE CONTROL BAR ==================== -->
+    <div id="slice-control-bar" class="slice-bar hidden" aria-label="Hyperplane Slice Controls">
+      <span id="slice-axis-label" class="slice-label">Y-SLICE POS: 36</span>
+      <button type="button" id="btn-slice-dec" class="btn-step-sm" aria-label="Decrease Slice Position">-1</button>
+      <input type="range" id="slice-slider" min="0" max="71" value="36" aria-label="Hyperplane Slice Position" />
+      <button type="button" id="btn-slice-inc" class="btn-step-sm" aria-label="Increase Slice Position">+1</button>
+      <label class="slice-cull-toggle">
+        <input type="checkbox" id="chk-slice-cull" checked />
+        <span>Cross-Section Cut</span>
+      </label>
+      <button type="button" id="btn-slice-exit" class="btn-step-sm btn-maroon">EXIT SLICE</button>
+    </div>
+
+    <!-- ==================== PASTE / GIZMO FLOATING BAR ==================== -->
+    <div id="paste-control-bar" class="paste-bar hidden" aria-label="Clipboard Paste Controls">
+      <span class="paste-title">CLIPBOARD PASTE MODE</span>
+      <div class="paste-nudge-group">
+        <button type="button" data-nudge="-1,0,0">-X</button>
+        <button type="button" data-nudge="1,0,0">+X</button>
+        <button type="button" data-nudge="0,-1,0">-Y</button>
+        <button type="button" data-nudge="0,1,0">+Y</button>
+        <button type="button" data-nudge="0,0,-1">-Z</button>
+        <button type="button" data-nudge="0,0,1">+Z</button>
+      </div>
+      <button type="button" id="btn-paste-rotate" class="btn-hud btn-orange">ROTATE 90 DEG (R)</button>
+      <button type="button" id="btn-paste-commit" class="btn-hud btn-green">STAMP VOXELS (ENTER)</button>
+      <button type="button" id="btn-paste-cancel" class="btn-hud btn-maroon">CANCEL (ESC)</button>
+    </div>
+
+    <!-- ==================== DRAGGABLE CHARACTER & INTERNAL ORGANS PANEL ==================== -->
+    <aside id="char-part-panel" class="char-panel hidden" aria-label="Hyperbuild 4D Character Parts and Internal Organs">
+      <div id="char-panel-header" class="char-panel-header">
+        <span>HYPERBUILD 4D ANATOMY [DRAG]</span>
+        <button type="button" id="btn-collapse-char-panel" class="btn-panel-min" aria-label="Collapse Anatomy Panel">-</button>
+      </div>
+      <div id="char-panel-body" class="char-panel-body">
+        <div class="part-filter-tabs" role="tablist">
+          <button type="button" class="tab-btn active" data-tab="all" role="tab">ALL (20)</button>
+          <button type="button" class="tab-btn" data-tab="outer" role="tab">SHELL (11)</button>
+          <button type="button" class="tab-btn" data-tab="organs" role="tab">ORGANS (9)</button>
+        </div>
+
+        <div class="part-quick-actions">
+          <button type="button" id="btn-show-all-parts" class="btn-part-action active">SHOW ALL PARTS</button>
+          <button type="button" id="btn-peel-outer-skin" class="btn-part-action btn-organ-focus">
+            PEEL SKIN (ORGANS ONLY)
+          </button>
+        </div>
+
+        <div class="part-target-indicator">
+          <span>Active Paint Target:</span>
+          <strong id="active-paint-part-label">Auto / Surface</strong>
+        </div>
+
+        <div id="part-list-container" class="part-list-scroll" role="list"></div>
+
+        <div class="char-panel-footer">
+          <button type="button" id="btn-toggle-joints" class="btn-joint-toggle active">
+            9 JOINTS RIG: VISIBLE
+          </button>
+          <button type="button" id="btn-toggle-organ-pulse" class="btn-joint-toggle active">
+            4D ORGAN PULSE: ON
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==================== EDITOR HUD: BOTTOM HOTBAR ==================== -->
+    <footer id="bottom-hotbar-wrap" class="hidden" aria-label="Bottom Tool and Color Hotbar">
+      <div class="hotbar-hint-row">
+        <span>[L-Click] Place/Sculpt</span>
+        <span class="sep">·</span>
+        <span>[Shift+L-Click] Erase</span>
+        <span class="sep">·</span>
+        <span>[R-Drag] Rotate View</span>
+        <span class="sep">·</span>
+        <span>[Wheel / WASD] Fly</span>
+        <span class="sep">·</span>
+        <span>[Q] Lock FPS Cursor</span>
+        <span class="sep">·</span>
+        <span>[4] Color Palette</span>
+        <span class="sep">·</span>
+        <span>[E] Full Settings</span>
+      </div>
+
+      <div id="hotbar-slots" class="hotbar-bar" role="toolbar" aria-label="Hotbar Slots 1 to 0"></div>
+    </footer>
+
+    <!-- ==================== POPUP 1: TOOLS SELECTOR ([1]) ==================== -->
+    <div id="tools-popup" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Select Drawing Tool">
+      <div class="modal-card modal-sm">
+        <div class="modal-header">
+          <h3>SELECT DRAWING &amp; SCULPTING TOOL</h3>
+          <button type="button" class="btn-close-modal" data-close="tools-popup" aria-label="Close Tools Modal">X</button>
+        </div>
+        <div class="tools-list">
+          <button type="button" class="btn-tool-item active" data-tool="0">1. Voxel Brush (Paint / Place)</button>
+          <button type="button" class="btn-tool-item" data-tool="1">2. 2D Hollow Rect (Slice Frame)</button>
+          <button type="button" class="btn-tool-item" data-tool="2">3. 3D Line Tool (Vessels / Bones)</button>
+          <button type="button" class="btn-tool-item" data-tool="3">4. Box Select Area (Copy / Move / Rotate)</button>
+          <button type="button" class="btn-tool-item" data-tool="6">5. 3D Solid Box (Block Volume)</button>
+          <button type="button" class="btn-tool-item" data-tool="7">6. 3D Organ Sphere / Ellipsoid</button>
+          <button type="button" class="btn-tool-item" data-tool="4">7. Eyedropper (Pick Color &amp; Organ Part)</button>
+          <button type="button" class="btn-tool-item" data-tool="5">8. Voxel Eraser (Carve Cavity)</button>
+        </div>
+        <div class="brush-size-row">
+          <span>Brush Size:</span>
+          <button type="button" class="btn-brush-sz active" data-bsize="1">1x1x1</button>
+          <button type="button" class="btn-brush-sz" data-bsize="2">2x2x2</button>
+          <button type="button" class="btn-brush-sz" data-bsize="3">3x3x3</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== POPUP 2: SLOT [4] CUSTOM COLOR PALETTE ==================== -->
+    <div id="slot4-palette-popup" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Slot 4 Custom Color Palette">
+      <div class="modal-card modal-md">
+        <div class="modal-header">
+          <div>
+            <h3>SLOT [4] CUSTOM COLOR &amp; TISSUE PALETTE</h3>
+            <p class="modal-sub">Pick any custom HSV shade, anatomical organ preset, or HEX code</p>
+          </div>
+          <button type="button" class="btn-hud btn-green" data-close="slot4-palette-popup">DONE [ESC]</button>
+        </div>
+
+        <div class="swatches-section">
+          <span class="section-kicker">QUICK SWATCHES &amp; 4D ORGAN TISSUES:</span>
+          <div id="slot4-swatches-grid" class="swatches-grid"></div>
+        </div>
+
+        <div class="hsv-picker-wrap">
+          <canvas id="slot4-hue-canvas" width="490" height="24" class="hue-canvas" aria-label="Hue Slider"></canvas>
+          <div class="sv-and-preview-row">
+            <canvas id="slot4-sv-canvas" width="300" height="190" class="sv-canvas" aria-label="Saturation Value Box"></canvas>
+            <div class="palette-side-info">
+              <span class="section-kicker">ACTIVE SLOT PREVIEW:</span>
+              <div id="slot4-preview-box" class="color-preview-box"></div>
+              <label for="slot4-hex-input" class="section-kicker">HEX CODE (#RRGGBBAA):</label>
+              <input id="slot4-hex-input" type="text" maxlength="9" value="#00D2FFFF" class="hex-input" />
+            </div>
+          </div>
+          <div class="alpha-slider-row">
+            <label for="slot4-alpha-range">ALPHA / OPACITY: <span id="slot4-alpha-val">255</span></label>
+            <input id="slot4-alpha-range" type="range" min="0" max="255" value="255" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== POPUP 3: SELECTION ACTIONS ==================== -->
+    <div id="select-popup" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Selection Actions">
+      <div class="modal-card modal-sm">
+        <div class="modal-header">
+          <h3>SELECTION ACTIONS</h3>
+          <button type="button" class="btn-close-modal" data-close="select-popup" aria-label="Close Selection Modal">X</button>
+        </div>
+        <p id="select-dims-label" class="modal-sub">Selected Box: 1x1x1</p>
+        <div class="tools-list">
+          <button type="button" id="btn-sel-copy" class="btn-hud btn-blue">Copy Area to Clipboard</button>
+          <button type="button" id="btn-sel-move" class="btn-hud btn-green">Move / Cut Area</button>
+          <button type="button" id="btn-sel-rotate" class="btn-hud btn-orange">Rotate 90 Degrees (Y-Axis)</button>
+          <button type="button" id="btn-sel-fill" class="btn-hud btn-purple">Fill Selection with Active Color</button>
+          <button type="button" id="btn-sel-delete" class="btn-hud btn-maroon">Delete Selected Voxels</button>
+          <button type="button" class="btn-hud btn-slate" data-close="select-popup">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== POPUP 4: FULL INVENTORY & SETTINGS ([E]) ==================== -->
+    <div id="inventory-popup" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Color Palette Shading and Camera Settings">
+      <div class="modal-card modal-lg">
+        <div class="modal-header">
+          <h3>COLOR PALETTE, 4D ANATOMY &amp; CAMERA SETTINGS</h3>
+          <div class="modal-header-actions">
+            <button type="button" id="btn-inv-eyedropper" class="btn-hud btn-orange">EYEDROPPER TOOL</button>
+            <button type="button" class="btn-hud btn-green" data-close="inventory-popup">RETURN TO EDITOR [E]</button>
+          </div>
+        </div>
+
+        <span class="section-kicker">HOTBAR SLOTS (Click Slot 4..0 to customize its color):</span>
+        <div id="inv-hotbar-grid" class="inv-hotbar-row"></div>
+
+        <div class="hsv-picker-wrap">
+          <canvas id="inv-hue-canvas" width="680" height="24" class="hue-canvas"></canvas>
+          <div class="sv-and-preview-row">
+            <canvas id="inv-sv-canvas" width="320" height="165" class="sv-canvas"></canvas>
+            <div class="inv-settings-right">
+              <div class="alpha-slider-row">
+                <label for="inv-alpha-range">OPACITY / ALPHA: <span id="inv-alpha-val">255</span></label>
+                <input id="inv-alpha-range" type="range" min="0" max="255" value="255" />
+              </div>
+
+              <div class="settings-row-inline">
+                <div class="fly-speed-ctrl">
+                  <span>FLY SPEED: <strong id="inv-speed-val">140%</strong></span>
+                  <button type="button" id="btn-speed-dec" class="btn-step-sm btn-maroon">-</button>
+                  <button type="button" id="btn-speed-inc" class="btn-step-sm btn-green">+</button>
+                </div>
+                <div class="hex-ctrl">
+                  <label for="inv-hex-input">HEX:</label>
+                  <input id="inv-hex-input" type="text" maxlength="9" value="#00D2FFFF" class="hex-input" />
+                </div>
+              </div>
+
+              <div class="organ-generator-box">
+                <span class="section-kicker">HYPERBUILD 4D ANATOMY PRESETS:</span>
+                <div class="organ-preset-btns">
+                  <button type="button" id="btn-regen-char-full" class="btn-hud btn-orange">
+                    Rebuild Character + All 9 Organs
+                  </button>
+                  <button type="button" id="btn-regen-organs-only" class="btn-hud btn-purple">
+                    Regenerate Internal Organs Only
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== POPUP 5: HYPERBUILD 4D / 4D MINER EXPORT MODAL ==================== -->
+    <div id="export-popup" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Export 4D Miner Volumetric Sheet and Hyperbuild 4D Organ Rig">
+      <div class="modal-card modal-xl">
+        <div class="modal-header">
+          <div>
+            <h3>EXPORT HYPERBUILD 4D &amp; 4D MINER VOLUMETRIC SHEET</h3>
+            <p class="modal-sub">
+              Exports complete 3D/4D volumetric cross-section slice PNG atlas preserving all internal organs, outer shell, 9 joints &amp; Hyperbuild 4D rig metadata
+            </p>
+          </div>
+          <button type="button" class="btn-close-modal" data-close="export-popup" aria-label="Close Export Modal">X</button>
+        </div>
+
+        <div class="export-body-grid">
+          <div class="export-controls-col">
+            <span class="section-kicker">SELECT 4D MINER / HYPERBUILD 4D ATLAS FORMAT:</span>
+            <div class="export-mode-tabs">
+              <button type="button" class="btn-export-mode active" data-emode="4dminer-volumetric">
+                1. 4D MINER VOLUMETRIC ORGAN ATLAS (4D W-Layers + Z-Slices)
+              </button>
+              <button type="button" class="btn-export-mode" data-emode="anatomical-20parts">
+                2. 20-PART ANATOMICAL SLICE SHEET (11 Outer + 9 Internal Organs)
+              </button>
+              <button type="button" class="btn-export-mode" data-emode="raw-z-strip">
+                3. RAW 3D TEXTURE Z-SLICE STRIP (gridX×gridZ × gridY)
+              </button>
+            </div>
+
+            <div class="export-filename-field">
+              <label for="export-filename-input">Base Filename (without extension):</label>
+              <input id="export-filename-input" type="text" value="hyperbuild_4d_character" />
+            </div>
+
+            <div class="export-spec-summary">
+              <h4>Hyperbuild 4D Export Package Contents:</h4>
+              <ul>
+                <li>
+                  <strong class="text-gold">1. [name].png (4D Miner Volumetric Sheet):</strong>
+                  Unlike hollow Minecraft skins, this encodes full 3D/4D cross-section Z-slices across W-anatomy layers (Epidermis/Apparel, Skeleton/Ribs, 9 Volumetric Internal Organs &amp; 4D Hyper-Core).
+                </li>
+                <li>
+                  <strong class="text-lime">2. [name]_rig_4d_organs.json:</strong>
+                  Exact 3D bounds, voxel counts, tissue types, damage multipliers, and UV-W slice coordinates for all 11 Outer Parts, 9 Internal Organs, and 9 Skeletal Joints.
+                </li>
+                <li>
+                  <strong class="text-cyan">3. [name]_hyperbuild_spec.txt:</strong>
+                  Complete Hyperbuild 4D engine loader &amp; shader reconstruction specification.
+                </li>
+              </ul>
+            </div>
+
+            <div class="export-download-actions">
+              <button type="button" id="btn-download-all-export" class="btn-primary-green">
+                EXPORT &amp; DOWNLOAD ALL 3 FILES (ENTER)
+              </button>
+              <div class="export-single-btns">
+                <button type="button" id="btn-download-png-only" class="btn-hud btn-blue">PNG Sheet Only</button>
+                <button type="button" id="btn-download-json-only" class="btn-hud btn-slate">4D Rig JSON Only</button>
+                <button type="button" id="btn-download-txt-only" class="btn-hud btn-slate">Engine Spec .TXT</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="export-preview-col">
+            <div class="export-preview-header">
+              <span id="export-sheet-dims-label">LIVE 4D MINER PNG SHEET PREVIEW (256×256)</span>
+            </div>
+            <div class="export-canvas-frame">
+              <canvas id="export-preview-canvas" width="256" height="256"></canvas>
+            </div>
+            <p class="export-preview-note">
+              Every pixel in this 4D Miner sheet represents an actual 3D voxel inside the character's outer shell, skeleton, or internal organs.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== POPUP 6: SAVE PROJECT AS (.HT3D) ==================== -->
+    <div id="saveas-popup" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Save Project As HT3D">
+      <div class="modal-card modal-sm">
+        <div class="modal-header">
+          <h3>SAVE PROJECT AS (.HT3D)</h3>
+          <button type="button" class="btn-close-modal" data-close="saveas-popup" aria-label="Close Save As Modal">X</button>
+        </div>
+        <div class="export-filename-field">
+          <label for="saveas-filename-input">Project Filename (.ht3d binary):</label>
+          <input id="saveas-filename-input" type="text" value="hyperbuild_4d_project.ht3d" />
+        </div>
+        <p class="modal-sub">100% binary-compatible with HyperTex3D HTV2 format.</p>
+        <div class="modal-footer-btns">
+          <button type="button" id="btn-saveas-confirm" class="btn-hud btn-green">SAVE .HT3D FILE (ENTER)</button>
+          <button type="button" class="btn-hud btn-maroon" data-close="saveas-popup">CANCEL (ESC)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden File Input for Loading .ht3d Project Files -->
+    <input type="file" id="load-ht3d-input" accept=".ht3d" hidden />
+
+    <script type="module" src="./script.js"></script>
+  </body>
+</html>

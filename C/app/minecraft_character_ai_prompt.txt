@@ -1,0 +1,39 @@
+========================================================================
+AI RECONSTRUCTION PROMPT & RIG SPECIFICATION (HyperTex3D -> Game Engine)
+========================================================================
+
+PROJECT: Minecraft & 4D-Miner Style Articulated Character
+TEXTURE FILE: app/minecraft_character.png (128x128 standard unwrapped 2D UV sheet)
+RIG TYPE: 11 Individual Articulated Body Segments with 9 Rotational Joints
+
+--- 1. BODY PARTS SPECIFICATION & UV SHEET RECTANGLES ---
+1. Head: Size 16x16x16 voxels. Unwrapped UV Rect: [X:0, Y:0, W:64, H:32]
+2. Upper Torso (Chest): Size 16x12x8 voxels. Unwrapped UV Rect: [X:64, Y:0, W:48, H:20]
+3. Lower Torso (Pelvis): Size 16x12x8 voxels. Unwrapped UV Rect: [X:64, Y:22, W:48, H:20]
+4. Left Arm Upper: Size 8x12x8 voxels. Unwrapped UV Rect: [X:0, Y:36, W:32, H:20]
+5. Left Arm Lower: Size 8x12x8 voxels. Unwrapped UV Rect: [X:34, Y:36, W:32, H:20]
+6. Right Arm Upper: Size 8x12x8 voxels. Unwrapped UV Rect: [X:0, Y:60, W:32, H:20]
+7. Right Arm Lower: Size 8x12x8 voxels. Unwrapped UV Rect: [X:34, Y:60, W:32, H:20]
+8. Left Leg Upper: Size 8x12x8 voxels. Unwrapped UV Rect: [X:68, Y:46, W:32, H:20]
+9. Left Leg Lower: Size 8x12x8 voxels. Unwrapped UV Rect: [X:68, Y:68, W:32, H:20]
+10. Right Leg Upper: Size 8x12x8 voxels. Unwrapped UV Rect: [X:0, Y:84, W:32, H:20]
+11. Right Leg Lower: Size 8x12x8 voxels. Unwrapped UV Rect: [X:34, Y:84, W:32, H:20]
+
+--- 2. THE 9 ARTICULATED SKELETAL JOINTS & HIERARCHY ---
+1. 1. Neck Joint -> 3D Pivot: (24.0, 50.0, 16.0) | Connects: [Parent: Part 2 (2. Upper Torso)] -> [Child: Part 1 (1. Head (16x16x16))]
+2. 2. Waist Joint -> 3D Pivot: (24.0, 38.0, 16.0) | Connects: [Parent: Part 2 (2. Upper Torso)] -> [Child: Part 3 (3. Lower Torso)]
+3. 3. L-Shoulder Joint -> 3D Pivot: (16.0, 48.0, 16.0) | Connects: [Parent: Part 2 (2. Upper Torso)] -> [Child: Part 4 (4. L-Arm Upper)]
+4. 4. L-Elbow Joint -> 3D Pivot: (12.0, 38.0, 16.0) | Connects: [Parent: Part 4 (4. L-Arm Upper)] -> [Child: Part 5 (5. L-Arm Lower)]
+5. 5. R-Shoulder Joint -> 3D Pivot: (32.0, 48.0, 16.0) | Connects: [Parent: Part 2 (2. Upper Torso)] -> [Child: Part 6 (6. R-Arm Upper)]
+6. 6. R-Elbow Joint -> 3D Pivot: (36.0, 38.0, 16.0) | Connects: [Parent: Part 6 (6. R-Arm Upper)] -> [Child: Part 7 (7. R-Arm Lower)]
+7. 7. L-Hip Joint -> 3D Pivot: (20.0, 26.0, 16.0) | Connects: [Parent: Part 3 (3. Lower Torso)] -> [Child: Part 8 (8. L-Leg Upper)]
+8. 8. L-Knee Joint -> 3D Pivot: (20.0, 14.0, 16.0) | Connects: [Parent: Part 8 (8. L-Leg Upper)] -> [Child: Part 9 (9. L-Leg Lower)]
+9. 9. R-Hip Joint -> 3D Pivot: (28.0, 26.0, 16.0) | Connects: [Parent: Part 3 (3. Lower Torso)] -> [Child: Part 10 (10. R-Leg Upper)]
+
+--- 3. AI RECONSTRUCTION INSTRUCTIONS FOR ANY 3D RENDERER ---
+To reconstruct this 3D character in Three.js, Babylon.js, Unity, or Godot:
+1. Instantiate 11 BoxGeometry meshes matching each part's voxel dimension.
+2. Map each box's 6 faces (Top, Bottom, Right, Front, Left, Back) to the 2D UV coordinates given in the unwrapped sheet.
+3. Connect child mesh pivot points to their parent joint coordinates as defined above.
+4. The Lower Torso connects to the Upper Torso at Waist Joint (24, 38, 16). Arms connect at Shoulder Joints. Elbows and Knees rotate on X-axis.
+========================================================================

@@ -1,0 +1,150 @@
+{
+  "modelType": "Minecraft_4DMiner_Rig",
+  "textureResolution": [ 128, 128 ],
+  "totalParts": 11,
+  "totalJoints": 9,
+  "parts": [
+    {
+      "id": 1,
+      "name": "Head",
+      "size": [ 16, 16, 16 ],
+      "worldBoundsMin": [ 16, 50, 8 ],
+      "uvSheetRect": [ 0, 0, 64, 32 ]
+    },
+    {
+      "id": 2,
+      "name": "Upper_Torso",
+      "size": [ 16, 12, 8 ],
+      "worldBoundsMin": [ 16, 38, 12 ],
+      "uvSheetRect": [ 64, 0, 48, 20 ]
+    },
+    {
+      "id": 3,
+      "name": "Lower_Torso",
+      "size": [ 16, 12, 8 ],
+      "worldBoundsMin": [ 16, 26, 12 ],
+      "uvSheetRect": [ 64, 22, 48, 20 ]
+    },
+    {
+      "id": 4,
+      "name": "L_Arm_Upper",
+      "size": [ 8, 12, 8 ],
+      "worldBoundsMin": [ 8, 38, 12 ],
+      "uvSheetRect": [ 0, 36, 32, 20 ]
+    },
+    {
+      "id": 5,
+      "name": "L_Arm_Lower",
+      "size": [ 8, 12, 8 ],
+      "worldBoundsMin": [ 8, 26, 12 ],
+      "uvSheetRect": [ 34, 36, 32, 20 ]
+    },
+    {
+      "id": 6,
+      "name": "R_Arm_Upper",
+      "size": [ 8, 12, 8 ],
+      "worldBoundsMin": [ 32, 38, 12 ],
+      "uvSheetRect": [ 0, 60, 32, 20 ]
+    },
+    {
+      "id": 7,
+      "name": "R_Arm_Lower",
+      "size": [ 8, 12, 8 ],
+      "worldBoundsMin": [ 32, 26, 12 ],
+      "uvSheetRect": [ 34, 60, 32, 20 ]
+    },
+    {
+      "id": 8,
+      "name": "L_Leg_Upper",
+      "size": [ 8, 12, 8 ],
+      "worldBoundsMin": [ 16, 14, 12 ],
+      "uvSheetRect": [ 68, 46, 32, 20 ]
+    },
+    {
+      "id": 9,
+      "name": "L_Leg_Lower",
+      "size": [ 8, 12, 8 ],
+      "worldBoundsMin": [ 16, 2, 12 ],
+      "uvSheetRect": [ 68, 68, 32, 20 ]
+    },
+    {
+      "id": 10,
+      "name": "R_Leg_Upper",
+      "size": [ 8, 12, 8 ],
+      "worldBoundsMin": [ 24, 14, 12 ],
+      "uvSheetRect": [ 0, 84, 32, 20 ]
+    },
+    {
+      "id": 11,
+      "name": "R_Leg_Lower",
+      "size": [ 8, 12, 8 ],
+      "worldBoundsMin": [ 24, 2, 12 ],
+      "uvSheetRect": [ 34, 84, 32, 20 ]
+    }
+  ],
+  "joints": [
+    {
+      "jointId": "neck_joint",
+      "name": "1. Neck Joint",
+      "position": [ 24.00, 50.00, 16.00 ],
+      "parentPartId": 2,
+      "childPartId": 1
+    },
+    {
+      "jointId": "waist_joint",
+      "name": "2. Waist Joint",
+      "position": [ 24.00, 38.00, 16.00 ],
+      "parentPartId": 2,
+      "childPartId": 3
+    },
+    {
+      "jointId": "l_shoulder_joint",
+      "name": "3. L-Shoulder Joint",
+      "position": [ 16.00, 48.00, 16.00 ],
+      "parentPartId": 2,
+      "childPartId": 4
+    },
+    {
+      "jointId": "l_elbow_joint",
+      "name": "4. L-Elbow Joint",
+      "position": [ 12.00, 38.00, 16.00 ],
+      "parentPartId": 4,
+      "childPartId": 5
+    },
+    {
+      "jointId": "r_shoulder_joint",
+      "name": "5. R-Shoulder Joint",
+      "position": [ 32.00, 48.00, 16.00 ],
+      "parentPartId": 2,
+      "childPartId": 6
+    },
+    {
+      "jointId": "r_elbow_joint",
+      "name": "6. R-Elbow Joint",
+      "position": [ 36.00, 38.00, 16.00 ],
+      "parentPartId": 6,
+      "childPartId": 7
+    },
+    {
+      "jointId": "l_hip_joint",
+      "name": "7. L-Hip Joint",
+      "position": [ 20.00, 26.00, 16.00 ],
+      "parentPartId": 3,
+      "childPartId": 8
+    },
+    {
+      "jointId": "l_knee_joint",
+      "name": "8. L-Knee Joint",
+      "position": [ 20.00, 14.00, 16.00 ],
+      "parentPartId": 8,
+      "childPartId": 9
+    },
+    {
+      "jointId": "r_hip_joint",
+      "name": "9. R-Hip Joint",
+      "position": [ 28.00, 26.00, 16.00 ],
+      "parentPartId": 3,
+      "childPartId": 10
+    }
+  ]
+}
