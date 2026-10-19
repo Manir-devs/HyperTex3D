@@ -1,14 +1,15 @@
 /**
- * HyperTex3D Ultimate — Hyperbuild 4D Voxel, Internal Organ & 4D Miner Atlas Studio
- * Standalone Zero-Backend Engine (WebGL 3D + 4D Volumetric Organ Pipeline)
+ * HyperTex3D Ultimate — Hyperbuild 4D Voxel, Proportional Joint Rig, Internal Organ & .hb Studio
+ * Standalone Zero-Backend Engine (WebGL 3D + Hyperbuild 4D Volumetric Organ & .hb Pipeline)
  */
 
 export const HT3D_MAGIC = 0x32565448; // "HTV2"
+export const HB_FORMAT_VERSION = 'HYPERBUILD_4D_HB_V1';
 export const MAX_BACKUPS = 30;
 export const NUM_OUTER_PARTS = 11;
 export const NUM_ORGAN_PARTS = 9;
 export const NUM_BODY_PARTS = 20; // 1..11 Outer Rig, 12..20 Volumetric 3D Internal Organs
-export const NUM_JOINTS = 9;
+export const NUM_JOINTS = 10;
 
 export const STATE_STARTUP = 0;
 export const STATE_EDITOR = 1;
@@ -24,43 +25,51 @@ export const TOOL_ERASER = 5;
 export const TOOL_BOX_3D = 6;
 export const TOOL_SPHERE_3D = 7;
 
+/**
+ * Base 20-Part Anatomical Specification (calibrated for standard 16x16x16 Head Size).
+ * When headSize changes (e.g. 8, 12, 16, 20, 24), all body parts, organs, and joints scale proportionally!
+ * Every part explicitly records `followJoint` (which skeletal joint it follows in Hyperbuild 4D).
+ */
 export const BODY_PART_SPECS = [
-  { id: 0, name: 'SHOW ALL PARTS', category: 'world', color: '#adb5bd', tissue: 'World' },
+  { id: 0, name: 'SHOW ALL PARTS', category: 'world', color: '#adb5bd', tissue: 'World', followJoint: 'root_origin' },
   // 1..11: Articulated Outer Body Parts
-  { id: 1, name: '1. Head (16x16x16 Cranium)', category: 'outer', color: '#ebb491', tissue: 'Epidermis/Cranium', bounds: [16, 50, 8, 16, 16, 16] },
-  { id: 2, name: '2. Upper Torso (Thorax Shell)', category: 'outer', color: '#00b4c3', tissue: 'Thoracic Shell', bounds: [16, 38, 12, 16, 12, 8] },
-  { id: 3, name: '3. Lower Torso (Abdomen Shell)', category: 'outer', color: '#0096a5', tissue: 'Abdominal Shell', bounds: [16, 26, 12, 16, 12, 8] },
-  { id: 4, name: '4. L-Arm Upper', category: 'outer', color: '#00a5b4', tissue: 'Limb Muscle/Skin', bounds: [8, 38, 12, 8, 12, 8] },
-  { id: 5, name: '5. L-Arm Lower', category: 'outer', color: '#e1aa87', tissue: 'Forearm/Hand', bounds: [8, 26, 12, 8, 12, 8] },
-  { id: 6, name: '6. R-Arm Upper', category: 'outer', color: '#00a5b4', tissue: 'Limb Muscle/Skin', bounds: [32, 38, 12, 8, 12, 8] },
-  { id: 7, name: '7. R-Arm Lower', category: 'outer', color: '#e1aa87', tissue: 'Forearm/Hand', bounds: [32, 26, 12, 8, 12, 8] },
-  { id: 8, name: '8. L-Leg Upper', category: 'outer', color: '#3755af', tissue: 'Femoral Muscle', bounds: [16, 14, 12, 8, 12, 8] },
-  { id: 9, name: '9. L-Leg Lower', category: 'outer', color: '#2d4696', tissue: 'Tibial/Boot', bounds: [16, 2, 12, 8, 12, 8] },
-  { id: 10, name: '10. R-Leg Upper', category: 'outer', color: '#3755af', tissue: 'Femoral Muscle', bounds: [24, 14, 12, 8, 12, 8] },
-  { id: 11, name: '11. R-Leg Lower', category: 'outer', color: '#2d4696', tissue: 'Tibial/Boot', bounds: [24, 2, 12, 8, 12, 8] },
-  // 12..20: Volumetric 3D Internal Organs (Inside the Character!)
-  { id: 12, name: '12. Brain & Neural Stem [ORGAN]', category: 'organ', color: '#f06595', tissue: 'Neural/Cerebral', parentPart: 1, damageMult: 3.5, bounds: [18, 52, 11, 12, 11, 10] },
-  { id: 13, name: '13. Optic & Sensory Bulbs [ORGAN]', category: 'organ', color: '#4dabf7', tissue: 'Sensory/Optical', parentPart: 1, damageMult: 2.2, bounds: [18, 55, 18, 12, 4, 5] },
-  { id: 14, name: '14. Ribcage & Spine [SKELETON]', category: 'organ', color: '#f1f3f5', tissue: 'Calcified Bone', parentPart: 2, damageMult: 1.4, bounds: [17, 27, 13, 14, 23, 6] },
-  { id: 15, name: '15. Heart (4D Ventricle) [ORGAN]', category: 'organ', color: '#e03131', tissue: 'Cardiac Myocardium', parentPart: 2, damageMult: 4.0, bounds: [22, 41, 15, 5, 6, 4] },
-  { id: 16, name: '16. Lungs (L & R Lobes) [ORGAN]', category: 'organ', color: '#ff8787', tissue: 'Pulmonary Alveoli', parentPart: 2, damageMult: 2.5, bounds: [18, 39, 14, 12, 9, 5] },
-  { id: 17, name: '17. Stomach & Esophagus [ORGAN]', category: 'organ', color: '#f783ac', tissue: 'Gastric Viscera', parentPart: 3, damageMult: 1.8, bounds: [23, 33, 14, 6, 6, 5] },
-  { id: 18, name: '18. Liver & Kidneys [ORGAN]', category: 'organ', color: '#9c36b5', tissue: 'Hepatic/Renal', parentPart: 3, damageMult: 2.0, bounds: [18, 32, 14, 10, 6, 5] },
-  { id: 19, name: '19. Coiled Intestines [ORGAN]', category: 'organ', color: '#ffa94d', tissue: 'Enteric Tract', parentPart: 3, damageMult: 1.6, bounds: [18, 27, 14, 12, 6, 5] },
-  { id: 20, name: '20. 4D Hyper-Gland Core [4D ORGAN]', category: 'organ', color: '#00f5d4', tissue: '4D Tesseract Nexus', parentPart: 2, damageMult: 5.0, bounds: [22, 37, 15, 4, 4, 4] },
+  { id: 1, name: '1. Head (Cranium)', category: 'outer', color: '#ebb491', tissue: 'Epidermis/Cranium', followJoint: 'neck_joint', baseBounds: [16, 50, 8, 16, 16, 16], bounds: [16, 50, 8, 16, 16, 16] },
+  { id: 2, name: '2. Upper Torso (Thorax Shell)', category: 'outer', color: '#00b4c3', tissue: 'Thoracic Shell', followJoint: 'waist_joint', baseBounds: [16, 38, 12, 16, 12, 8], bounds: [16, 38, 12, 16, 12, 8] },
+  { id: 3, name: '3. Lower Torso (Abdomen Shell)', category: 'outer', color: '#0096a5', tissue: 'Abdominal Shell', followJoint: 'waist_joint', baseBounds: [16, 26, 12, 16, 12, 8], bounds: [16, 26, 12, 16, 12, 8] },
+  { id: 4, name: '4. L-Arm Upper', category: 'outer', color: '#00a5b4', tissue: 'Limb Muscle/Skin', followJoint: 'l_shoulder_joint', baseBounds: [8, 38, 12, 8, 12, 8], bounds: [8, 38, 12, 8, 12, 8] },
+  { id: 5, name: '5. L-Arm Lower', category: 'outer', color: '#e1aa87', tissue: 'Forearm/Hand', followJoint: 'l_elbow_joint', baseBounds: [8, 26, 12, 8, 12, 8], bounds: [8, 26, 12, 8, 12, 8] },
+  { id: 6, name: '6. R-Arm Upper', category: 'outer', color: '#00a5b4', tissue: 'Limb Muscle/Skin', followJoint: 'r_shoulder_joint', baseBounds: [32, 38, 12, 8, 12, 8], bounds: [32, 38, 12, 8, 12, 8] },
+  { id: 7, name: '7. R-Arm Lower', category: 'outer', color: '#e1aa87', tissue: 'Forearm/Hand', followJoint: 'r_elbow_joint', baseBounds: [32, 26, 12, 8, 12, 8], bounds: [32, 26, 12, 8, 12, 8] },
+  { id: 8, name: '8. L-Leg Upper', category: 'outer', color: '#3755af', tissue: 'Femoral Muscle', followJoint: 'l_hip_joint', baseBounds: [16, 14, 12, 8, 12, 8], bounds: [16, 14, 12, 8, 12, 8] },
+  { id: 9, name: '9. L-Leg Lower', category: 'outer', color: '#2d4696', tissue: 'Tibial/Boot', followJoint: 'l_knee_joint', baseBounds: [16, 2, 12, 8, 12, 8], bounds: [16, 2, 12, 8, 12, 8] },
+  { id: 10, name: '10. R-Leg Upper', category: 'outer', color: '#3755af', tissue: 'Femoral Muscle', followJoint: 'r_hip_joint', baseBounds: [24, 14, 12, 8, 12, 8], bounds: [24, 14, 12, 8, 12, 8] },
+  { id: 11, name: '11. R-Leg Lower', category: 'outer', color: '#2d4696', tissue: 'Tibial/Boot', followJoint: 'r_knee_joint', baseBounds: [24, 2, 12, 8, 12, 8], bounds: [24, 2, 12, 8, 12, 8] },
+  // 12..20: Volumetric 3D Internal Organs (Inside the Character, following their parent cavity's joint!)
+  { id: 12, name: '12. Brain & Neural Stem [ORGAN]', category: 'organ', color: '#f06595', tissue: 'Neural/Cerebral', parentPart: 1, followJoint: 'neck_joint', damageMult: 3.5, baseBounds: [18, 52, 11, 12, 11, 10], bounds: [18, 52, 11, 12, 11, 10] },
+  { id: 13, name: '13. Optic & Sensory Bulbs [ORGAN]', category: 'organ', color: '#4dabf7', tissue: 'Sensory/Optical', parentPart: 1, followJoint: 'neck_joint', damageMult: 2.2, baseBounds: [18, 55, 18, 12, 4, 5], bounds: [18, 55, 18, 12, 4, 5] },
+  { id: 14, name: '14. Ribcage & Spine [SKELETON]', category: 'organ', color: '#f1f3f5', tissue: 'Calcified Bone', parentPart: 2, followJoint: 'waist_joint', damageMult: 1.4, baseBounds: [17, 27, 13, 14, 23, 6], bounds: [17, 27, 13, 14, 23, 6] },
+  { id: 15, name: '15. Heart (4D Ventricle) [ORGAN]', category: 'organ', color: '#e03131', tissue: 'Cardiac Myocardium', parentPart: 2, followJoint: 'waist_joint', damageMult: 4.0, baseBounds: [22, 41, 15, 5, 6, 4], bounds: [22, 41, 15, 5, 6, 4] },
+  { id: 16, name: '16. Lungs (L & R Lobes) [ORGAN]', category: 'organ', color: '#ff8787', tissue: 'Pulmonary Alveoli', parentPart: 2, followJoint: 'waist_joint', damageMult: 2.5, baseBounds: [18, 39, 14, 12, 9, 5], bounds: [18, 39, 14, 12, 9, 5] },
+  { id: 17, name: '17. Stomach & Esophagus [ORGAN]', category: 'organ', color: '#f783ac', tissue: 'Gastric Viscera', parentPart: 3, followJoint: 'waist_joint', damageMult: 1.8, baseBounds: [23, 33, 14, 6, 6, 5], bounds: [23, 33, 14, 6, 6, 5] },
+  { id: 18, name: '18. Liver & Kidneys [ORGAN]', category: 'organ', color: '#9c36b5', tissue: 'Hepatic/Renal', parentPart: 3, followJoint: 'waist_joint', damageMult: 2.0, baseBounds: [18, 32, 14, 10, 6, 5], bounds: [18, 32, 14, 10, 6, 5] },
+  { id: 19, name: '19. Coiled Intestines [ORGAN]', category: 'organ', color: '#ffa94d', tissue: 'Enteric Tract', parentPart: 3, followJoint: 'waist_joint', damageMult: 1.6, baseBounds: [18, 27, 14, 12, 6, 5], bounds: [18, 27, 14, 12, 6, 5] },
+  { id: 20, name: '20. 4D Hyper-Gland Core [4D ORGAN]', category: 'organ', color: '#00f5d4', tissue: '4D Tesseract Nexus', parentPart: 2, followJoint: 'waist_joint', damageMult: 5.0, baseBounds: [22, 37, 15, 4, 4, 4], bounds: [22, 37, 15, 4, 4, 4] },
 ];
 
-export const CHAR_JOINTS = [
-  { id: 'neck_joint', name: '1. Neck Joint', pos: [24.0, 50.0, 16.0], parentPart: 2, childPart: 1, parentAnchor: [0, 12, 0], childAnchor: [0, 0, 0] },
-  { id: 'waist_joint', name: '2. Waist Joint', pos: [24.0, 38.0, 16.0], parentPart: 2, childPart: 3, parentAnchor: [0, 0, 0], childAnchor: [0, 12, 0] },
-  { id: 'l_shoulder_joint', name: '3. L-Shoulder Joint', pos: [16.0, 48.0, 16.0], parentPart: 2, childPart: 4, parentAnchor: [-8, 10, 0], childAnchor: [4, 11, 0] },
-  { id: 'l_elbow_joint', name: '4. L-Elbow Joint', pos: [12.0, 38.0, 16.0], parentPart: 4, childPart: 5, parentAnchor: [0, 0, 0], childAnchor: [0, 12, 0] },
-  { id: 'r_shoulder_joint', name: '5. R-Shoulder Joint', pos: [32.0, 48.0, 16.0], parentPart: 2, childPart: 6, parentAnchor: [8, 10, 0], childAnchor: [-4, 11, 0] },
-  { id: 'r_elbow_joint', name: '6. R-Elbow Joint', pos: [36.0, 38.0, 16.0], parentPart: 6, childPart: 7, parentAnchor: [0, 0, 0], childAnchor: [0, 12, 0] },
-  { id: 'l_hip_joint', name: '7. L-Hip Joint', pos: [20.0, 26.0, 16.0], parentPart: 3, childPart: 8, parentAnchor: [-4, 0, 0], childAnchor: [0, 12, 0] },
-  { id: 'l_knee_joint', name: '8. L-Knee Joint', pos: [20.0, 14.0, 16.0], parentPart: 8, childPart: 9, parentAnchor: [0, 0, 0], childAnchor: [0, 12, 0] },
-  { id: 'r_hip_joint', name: '9. R-Hip Joint', pos: [28.0, 26.0, 16.0], parentPart: 3, childPart: 10, parentAnchor: [4, 0, 0], childAnchor: [0, 12, 0] },
+export const BASE_CHAR_JOINTS = [
+  { id: 'neck_joint', name: '1. Neck Joint', basePos: [24.0, 50.0, 16.0], pos: [24.0, 50.0, 16.0], parentPart: 2, childPart: 1, parentAnchor: [0, 12, 0], childAnchor: [0, 0, 0] },
+  { id: 'waist_joint', name: '2. Waist Joint', basePos: [24.0, 38.0, 16.0], pos: [24.0, 38.0, 16.0], parentPart: 2, childPart: 3, parentAnchor: [0, 0, 0], childAnchor: [0, 12, 0] },
+  { id: 'l_shoulder_joint', name: '3. L-Shoulder Joint', basePos: [16.0, 48.0, 16.0], pos: [16.0, 48.0, 16.0], parentPart: 2, childPart: 4, parentAnchor: [-8, 10, 0], childAnchor: [4, 11, 0] },
+  { id: 'l_elbow_joint', name: '4. L-Elbow Joint', basePos: [12.0, 38.0, 16.0], pos: [12.0, 38.0, 16.0], parentPart: 4, childPart: 5, parentAnchor: [0, 0, 0], childAnchor: [0, 12, 0] },
+  { id: 'r_shoulder_joint', name: '5. R-Shoulder Joint', basePos: [32.0, 48.0, 16.0], pos: [32.0, 48.0, 16.0], parentPart: 2, childPart: 6, parentAnchor: [8, 10, 0], childAnchor: [-4, 11, 0] },
+  { id: 'r_elbow_joint', name: '6. R-Elbow Joint', basePos: [36.0, 38.0, 16.0], pos: [36.0, 38.0, 16.0], parentPart: 6, childPart: 7, parentAnchor: [0, 0, 0], childAnchor: [0, 12, 0] },
+  { id: 'l_hip_joint', name: '7. L-Hip Joint', basePos: [20.0, 26.0, 16.0], pos: [20.0, 26.0, 16.0], parentPart: 3, childPart: 8, parentAnchor: [-4, 0, 0], childAnchor: [0, 12, 0] },
+  { id: 'l_knee_joint', name: '8. L-Knee Joint', basePos: [20.0, 14.0, 16.0], pos: [20.0, 14.0, 16.0], parentPart: 8, childPart: 9, parentAnchor: [0, 0, 0], childAnchor: [0, 12, 0] },
+  { id: 'r_hip_joint', name: '9. R-Hip Joint', basePos: [28.0, 26.0, 16.0], pos: [28.0, 26.0, 16.0], parentPart: 3, childPart: 10, parentAnchor: [4, 0, 0], childAnchor: [0, 12, 0] },
+  { id: 'r_knee_joint', name: '10. R-Knee Joint', basePos: [28.0, 14.0, 16.0], pos: [28.0, 14.0, 16.0], parentPart: 10, childPart: 11, parentAnchor: [0, 0, 0], childAnchor: [0, 12, 0] },
 ];
+
+export const CHAR_JOINTS = BASE_CHAR_JOINTS;
 
 // ==================== ENGINE STATE ====================
 export const engine = {
@@ -69,6 +78,7 @@ export const engine = {
   gridX: 32,
   gridY: 32,
   gridZ: 32,
+  headSize: 16, // Default 16x16x16 head; body, limbs, organs & joints scale proportionally!
   totalVoxels: 0,
   activeVoxelCount: 0,
 
@@ -89,7 +99,7 @@ export const engine = {
   smoothShading: true,
   showWireframe: true,
   xrayOuterShell: false,
-  cutawayMode: 0, // 0 = Off, 1 = Front Cutaway (z >= 18 on shell), 2 = Sagittal Cutaway (x < 24 on shell)
+  cutawayMode: 0, // 0 = Off, 1 = Front Cutaway, 2 = Sagittal Cutaway
   mirrorX: false,
 
   isMouseLocked: false,
@@ -133,10 +143,81 @@ export const engine = {
   undoStack: [],
   redoStack: [],
 
-  // Export Mode
-  exportFormat: '4dminer-volumetric', // '4dminer-volumetric' | 'anatomical-20parts' | 'raw-z-strip'
+  // Export Mode: default to '.hb' Hyperbuild 4D structure format
+  exportFormat: 'hb-structure', // 'hb-structure' | 'hyperbuild-volumetric' | 'anatomical-20parts' | 'raw-z-strip'
   meshDirty: true,
 };
+
+// ==================== PROPORTIONAL HEAD-TO-BODY SCALING HELPERS ====================
+/**
+ * Computes proportional character body dimensions from `headSize` (default 16 -> 16x16x16).
+ * If head is HxHxH:
+ * - Head: [H, H, H]
+ * - Upper Torso: [H, 0.75*H, 0.5*H] (16x12x8 at H=16)
+ * - Lower Torso: [H, 0.75*H, 0.5*H] (16x12x8 at H=16)
+ * - Total Torso: [H, 1.5*H, 0.5*H]  (16x24x8 at H=16)
+ * - Each Limb Segment (Upper/Lower Arm & Leg): [0.5*H, 0.75*H, 0.5*H] (8x12x8 at H=16)
+ * - Workspace Grid: [3*H, 4.5*H, 2*H] (48x72x32 at H=16)
+ */
+export function computeBodyProportionsFromHead(headSize = 16) {
+  const H = Math.max(8, Math.min(28, Math.round(Number(headSize) || 16)));
+  const s = H / 16.0;
+  const sc = (v) => Math.max(1, Math.round(v * s));
+  return {
+    headSize: [H, H, H],
+    scaleFactor: Number(s.toFixed(4)),
+    workspaceDimensions: [sc(48), sc(72), sc(32)],
+    head: [H, H, H],
+    upperTorso: [sc(16), sc(12), sc(8)],
+    lowerTorso: [sc(16), sc(12), sc(8)],
+    fullTorso: [sc(16), sc(24), sc(8)],
+    armUpper: [sc(8), sc(12), sc(8)],
+    armLower: [sc(8), sc(12), sc(8)],
+    legUpper: [sc(8), sc(12), sc(8)],
+    legLower: [sc(8), sc(12), sc(8)],
+  };
+}
+
+/**
+ * Updates `BODY_PART_SPECS[i].bounds` and `CHAR_JOINTS[j].pos` proportionally for the active `headSize`.
+ */
+export function syncProportionalRigToHeadSize(headSize = 16) {
+  const H = Math.max(8, Math.min(28, Math.round(Number(headSize) || 16)));
+  engine.headSize = H;
+  const s = H / 16.0;
+  const sc = (v) => Math.max(1, Math.round(v * s));
+  const scCoord = (v) => Math.round(v * s);
+
+  BODY_PART_SPECS[1].name = `1. Head (${H}x${H}x${H} Cranium)`;
+  for (let p = 1; p <= NUM_BODY_PARTS; p++) {
+    const spec = BODY_PART_SPECS[p];
+    if (spec && spec.baseBounds) {
+      const [bx, by, bz, bw, bh, bd] = spec.baseBounds;
+      spec.bounds = [scCoord(bx), scCoord(by), scCoord(bz), sc(bw), sc(bh), sc(bd)];
+    }
+  }
+
+  for (const j of CHAR_JOINTS) {
+    j.pos = [
+      Number((j.basePos[0] * s).toFixed(2)),
+      Number((j.basePos[1] * s).toFixed(2)),
+      Number((j.basePos[2] * s).toFixed(2)),
+    ];
+    j.scaledParentAnchor = j.parentAnchor.map((a) => Number((a * s).toFixed(2)));
+    j.scaledChildAnchor = j.childAnchor.map((a) => Number((a * s).toFixed(2)));
+  }
+}
+
+export function getJointForPart(partId) {
+  const spec = BODY_PART_SPECS[partId] || BODY_PART_SPECS[0];
+  const jointId = spec.followJoint || 'waist_joint';
+  const jointObj = CHAR_JOINTS.find((j) => j.id === jointId) || null;
+  return {
+    jointId,
+    jointName: jointObj ? jointObj.name : 'Root Origin',
+    jointPos: jointObj ? [...jointObj.pos] : [engine.gridX / 2, engine.gridY / 2, engine.gridZ / 2],
+  };
+}
 
 // ==================== PURE UTILITY & ENGINE FUNCTIONS ====================
 export function getIndex(x, y, z, gx = engine.gridX, gy = engine.gridY) {
@@ -212,17 +293,16 @@ export function isPartVisible(partId) {
 }
 
 export function isVoxelCutawayHidden(x, y, z, partId) {
-  // Slice plane cross-section culling
   if (engine.hpState !== 0 && engine.sliceCullAbove) {
     if (engine.hpState === 1 && y > engine.hpPos) return true;
     if (engine.hpState === 2 && x > engine.hpPos) return true;
     if (engine.hpState === 3 && z > engine.hpPos) return true;
   }
-  // Anatomical cutaway only slices outer body shell (parts 1..3: Head, Upper Torso, Lower Torso)
-  // so internal organs (12..20) remain 100% intact and visible inside!
   if (engine.isCharacterMode && engine.cutawayMode !== 0 && partId >= 1 && partId <= 3) {
-    if (engine.cutawayMode === 1 && z >= 16) return true; // Front half of shell removed
-    if (engine.cutawayMode === 2 && x < 24) return true;  // Left half of shell removed
+    const midZ = Math.floor(engine.gridZ / 2);
+    const midX = Math.floor(engine.gridX / 2);
+    if (engine.cutawayMode === 1 && z >= midZ) return true;
+    if (engine.cutawayMode === 2 && x < midX) return true;
   }
   return false;
 }
@@ -292,9 +372,9 @@ export function fillEllipsoidOrgan(cx, cy, cz, rx, ry, rz, partId, rgba, checker
   for (let x = xMin; x <= xMax; x++) {
     for (let y = yMin; y <= yMax; y++) {
       for (let z = zMin; z <= zMax; z++) {
-        const dx = (x - cx) / rx;
-        const dy = (y - cy) / ry;
-        const dz = (z - cz) / rz;
+        const dx = (x - cx) / Math.max(0.5, rx);
+        const dy = (y - cy) / Math.max(0.5, ry);
+        const dz = (z - cz) / Math.max(0.5, rz);
         if (dx * dx + dy * dy + dz * dz <= 1.0) {
           setVoxelRaw(x, y, z, partId, r, g, b, a, checkerAmp);
         }
@@ -304,95 +384,99 @@ export function fillEllipsoidOrgan(cx, cy, cz, rx, ry, rz, partId, rgba, checker
 }
 
 /**
- * Generates all 9 Volumetric 3D Internal Organs inside the Hyperbuild 4D Character!
- * Parts 12..20 live inside the cranial, thoracic, and abdominal cavities.
+ * Generates all 9 Volumetric 3D Internal Organs inside the Hyperbuild 4D Character,
+ * scaled proportionally to `engine.headSize`!
  */
-export function populateInternalOrgans() {
-  // First clear any existing organ voxels (partId 12..20)
+export function populateInternalOrgans(headSize = engine.headSize) {
+  const s = Math.max(8, Math.min(28, Number(headSize) || 16)) / 16.0;
+  const sc = (v) => Math.round(v * s);
+  const scSpan = (v1, v2) => [Math.round(v1 * s), Math.max(Math.round(v1 * s), Math.round((v2 + 1) * s) - 1)];
+  const scBox = (x1, x2, y1, y2, z1, z2) => {
+    const [xs1, xs2] = scSpan(x1, x2);
+    const [ys1, ys2] = scSpan(y1, y2);
+    const [zs1, zs2] = scSpan(z1, z2);
+    return [xs1, ys1, zs1, xs2, ys2, zs2];
+  };
+
   for (let i = 0; i < engine.totalVoxels; i++) {
     if (engine.active[i] && engine.partId[i] >= 12 && engine.partId[i] <= 20) {
       engine.active[i] = 0;
     }
   }
 
-  // 12. Brain & Neural Stem (Part 12) inside Cranium (18..29, 52..62, 11..20)
-  // Left & Right Cerebral Hemispheres with gyri texture and longitudinal fissure at x=23..24
-  fillEllipsoidOrgan(21.0, 59.0, 15.5, 3.2, 3.2, 4.2, 12, [240, 101, 149, 255], 9);
-  fillEllipsoidOrgan(26.0, 59.0, 15.5, 3.2, 3.2, 4.2, 12, [232, 90, 140, 255], 9);
-  // Corpus callosum bridge & Cerebellum at back-bottom of skull
-  fillBoxPart(22, 57, 14, 25, 59, 17, 12, [214, 51, 108, 255], 0, 5);
-  fillEllipsoidOrgan(23.5, 55.0, 13.0, 3.0, 2.0, 2.2, 12, [194, 37, 92, 255], 7);
-  // Brainstem / Medulla descending toward neck joint (y=51..55)
-  fillBoxPart(23, 51, 14, 24, 55, 16, 12, [229, 153, 247, 255], 0, 4);
+  // 12. Brain & Neural Stem (Part 12) inside Cranium — follows neck_joint
+  fillEllipsoidOrgan(21.0 * s, 59.0 * s, 15.5 * s, 3.2 * s, 3.2 * s, 4.2 * s, 12, [240, 101, 149, 255], 9);
+  fillEllipsoidOrgan(26.0 * s, 59.0 * s, 15.5 * s, 3.2 * s, 3.2 * s, 4.2 * s, 12, [232, 90, 140, 255], 9);
+  fillBoxPart(...scBox(22, 25, 57, 59, 14, 17), 12, [214, 51, 108, 255], 0, 5);
+  fillEllipsoidOrgan(23.5 * s, 55.0 * s, 13.0 * s, 3.0 * s, 2.0 * s, 2.2 * s, 12, [194, 37, 92, 255], 7);
+  fillBoxPart(...scBox(23, 24, 51, 55, 14, 16), 12, [229, 153, 247, 255], 0, 4);
 
-  // 13. Optic & Sensory Bulbs (Part 13) connecting Eyes (z=22) back to Visual Cortex
-  fillBoxPart(19, 56, 18, 20, 57, 22, 13, [77, 171, 247, 255], 0, 4);
-  fillBoxPart(27, 56, 18, 28, 57, 22, 13, [77, 171, 247, 255], 0, 4);
-  // Optic Chiasm crossover
-  fillBoxPart(21, 56, 17, 26, 57, 18, 13, [116, 192, 252, 255], 0, 4);
+  // 13. Optic & Sensory Bulbs (Part 13) — follows neck_joint
+  fillBoxPart(...scBox(19, 20, 56, 57, 18, 22), 13, [77, 171, 247, 255], 0, 4);
+  fillBoxPart(...scBox(27, 28, 56, 57, 18, 22), 13, [77, 171, 247, 255], 0, 4);
+  fillBoxPart(...scBox(21, 26, 56, 57, 17, 18), 13, [116, 192, 252, 255], 0, 4);
 
-  // 14. Ribcage & Spine (Part 14) inside Thorax & Abdomen
-  // Vertebral Column (Spine) along dorsal side (x=23..24, y=27..50, z=13)
-  for (let y = 27; y <= 50; y++) {
+  // 14. Ribcage & Spine (Part 14) — follows waist_joint
+  const [spY0, spY1] = scSpan(27, 50);
+  const [spX0, spX1] = scSpan(23, 24);
+  const spZ = sc(13);
+  for (let y = spY0; y <= spY1; y++) {
     const isDisc = y % 2 === 0;
     const col = isDisc ? [206, 212, 218, 255] : [248, 249, 250, 255];
-    setVoxelRaw(23, y, 13, 14, col[0], col[1], col[2], 255, 2);
-    setVoxelRaw(24, y, 13, 14, col[0], col[1], col[2], 255, 2);
+    for (let x = spX0; x <= spX1; x++) {
+      setVoxelRaw(x, y, spZ, 14, col[0], col[1], col[2], 255, 2);
+    }
   }
-  // Sternum (Breastbone) in front-center of chest (x=23..24, y=40..47, z=18)
-  fillBoxPart(23, 40, 18, 24, 47, 18, 14, [241, 243, 245, 255], 0, 3);
-  // 4 Pairs of Curved Thoracic Ribs (y = 40, 42, 45, 47) wrapping around lungs & heart
-  const ribLevels = [40, 42, 45, 47];
+  fillBoxPart(...scBox(23, 24, 40, 47, 18, 18), 14, [241, 243, 245, 255], 0, 3);
+  const ribLevels = [sc(40), sc(42), sc(45), sc(47)];
+  const [rx0, rx1] = scSpan(17, 30);
+  const [rz0, rz1] = scSpan(14, 17);
   for (const ry of ribLevels) {
-    for (let x = 17; x <= 30; x++) {
-      setVoxelRaw(x, ry, 13, 14, 241, 243, 245, 255, 3);
-      if (x <= 21 || x >= 26) {
-        setVoxelRaw(x, ry, 18, 14, 241, 243, 245, 255, 3);
+    for (let x = rx0; x <= rx1; x++) {
+      setVoxelRaw(x, ry, sc(13), 14, 241, 243, 245, 255, 3);
+      if (x <= sc(21) || x >= sc(26)) {
+        setVoxelRaw(x, ry, sc(18), 14, 241, 243, 245, 255, 3);
       }
     }
-    for (let z = 14; z <= 17; z++) {
-      setVoxelRaw(17, ry, z, 14, 233, 236, 239, 255, 3);
-      setVoxelRaw(30, ry, z, 14, 233, 236, 239, 255, 3);
+    for (let z = rz0; z <= rz1; z++) {
+      setVoxelRaw(rx0, ry, z, 14, 233, 236, 239, 255, 3);
+      setVoxelRaw(rx1, ry, z, 14, 233, 236, 239, 255, 3);
     }
   }
-  // Pelvic Bone Ring at bottom of abdomen (y=27..28)
-  fillBoxPart(18, 27, 13, 29, 28, 14, 14, [233, 236, 239, 255], 0, 3);
+  fillBoxPart(...scBox(18, 29, 27, 28, 13, 14), 14, [233, 236, 239, 255], 0, 3);
 
-  // 16. Lungs — Left & Right Bronchial Lobes (Part 16) inside ribcage
-  fillEllipsoidOrgan(19.8, 43.5, 16.0, 2.2, 4.2, 2.0, 16, [255, 135, 135, 255], 8);
-  fillEllipsoidOrgan(27.8, 43.5, 16.0, 2.2, 4.2, 2.0, 16, [255, 135, 135, 255], 8);
-  // Trachea (Windpipe) ascending to throat
-  fillBoxPart(23, 47, 15, 24, 49, 16, 16, [250, 176, 176, 255], 0, 4);
+  // 16. Lungs (Part 16) — follows waist_joint
+  fillEllipsoidOrgan(19.8 * s, 43.5 * s, 16.0 * s, 2.2 * s, 4.2 * s, 2.0 * s, 16, [255, 135, 135, 255], 8);
+  fillEllipsoidOrgan(27.8 * s, 43.5 * s, 16.0 * s, 2.2 * s, 4.2 * s, 2.0 * s, 16, [255, 135, 135, 255], 8);
+  fillBoxPart(...scBox(23, 24, 47, 49, 15, 16), 16, [250, 176, 176, 255], 0, 4);
 
-  // 15. Heart (4D Ventricle & Aortic Arch) (Part 15) nestled center-left between lungs
-  fillEllipsoidOrgan(24.5, 43.0, 16.2, 2.3, 2.7, 1.9, 15, [224, 49, 49, 255], 6);
-  // Aorta & Superior Vena Cava
-  fillBoxPart(23, 46, 16, 25, 47, 17, 15, [201, 42, 42, 255], 0, 4);
-  setVoxelRaw(22, 45, 17, 15, 59, 130, 246, 255, 0); // Venous return
+  // 15. Heart (Part 15) — follows waist_joint
+  fillEllipsoidOrgan(24.5 * s, 43.0 * s, 16.2 * s, 2.3 * s, 2.7 * s, 1.9 * s, 15, [224, 49, 49, 255], 6);
+  fillBoxPart(...scBox(23, 25, 46, 47, 16, 17), 15, [201, 42, 42, 255], 0, 4);
+  setVoxelRaw(sc(22), sc(45), sc(17), 15, 59, 130, 246, 255, 0);
 
-  // 20. 4D Hyper-Gland Core (Part 20) — Tesseract Bio-Nexus at Solar Plexus (x=22..25, y=37..39, z=15..17)
-  fillBoxPart(22, 37, 15, 25, 39, 17, 20, [0, 245, 212, 255], 0, 10);
-  // Inner hyper-nucleus
-  fillBoxPart(23, 38, 16, 24, 38, 16, 20, [241, 91, 181, 255], 0, 0);
+  // 20. 4D Hyper-Gland Core (Part 20) — follows waist_joint
+  fillBoxPart(...scBox(22, 25, 37, 39, 15, 17), 20, [0, 245, 212, 255], 0, 10);
+  fillBoxPart(...scBox(23, 24, 38, 38, 16, 16), 20, [241, 91, 181, 255], 0, 0);
 
-  // 17. Stomach & Esophagus (Part 17) — Left upper abdomen (x=24..28, y=33..36, z=15..17)
-  fillEllipsoidOrgan(26.2, 34.8, 16.0, 2.5, 2.2, 1.8, 17, [247, 131, 172, 255], 6);
-  // Esophagus tube
-  fillBoxPart(25, 37, 15, 25, 41, 15, 17, [230, 73, 128, 255], 0, 3);
+  // 17. Stomach & Esophagus (Part 17) — follows waist_joint
+  fillEllipsoidOrgan(26.2 * s, 34.8 * s, 16.0 * s, 2.5 * s, 2.2 * s, 1.8 * s, 17, [247, 131, 172, 255], 6);
+  fillBoxPart(...scBox(25, 25, 37, 41, 15, 15), 17, [230, 73, 128, 255], 0, 3);
 
-  // 18. Liver & Kidneys (Part 18) — Right upper abdomen (x=18..23, y=34..36, z=15..17) + Dorsal Kidneys
-  fillBoxPart(18, 34, 15, 22, 36, 17, 18, [156, 54, 181, 255], 0, 6);
-  fillBoxPart(23, 35, 16, 23, 36, 17, 18, [156, 54, 181, 255], 0, 6);
-  // Gallbladder accent
-  setVoxelRaw(20, 34, 17, 18, 81, 207, 102, 255, 0);
-  // Left & Right Kidneys (dorsal z=14)
-  fillBoxPart(19, 32, 14, 20, 34, 15, 18, [134, 46, 156, 255], 0, 4);
-  fillBoxPart(27, 32, 14, 28, 34, 15, 18, [134, 46, 156, 255], 0, 4);
+  // 18. Liver & Kidneys (Part 18) — follows waist_joint
+  fillBoxPart(...scBox(18, 22, 34, 36, 15, 17), 18, [156, 54, 181, 255], 0, 6);
+  fillBoxPart(...scBox(23, 23, 35, 36, 16, 17), 18, [156, 54, 181, 255], 0, 6);
+  setVoxelRaw(sc(20), sc(34), sc(17), 18, 81, 207, 102, 255, 0);
+  fillBoxPart(...scBox(19, 20, 32, 34, 14, 15), 18, [134, 46, 156, 255], 0, 4);
+  fillBoxPart(...scBox(27, 28, 32, 34, 14, 15), 18, [134, 46, 156, 255], 0, 4);
 
-  // 19. Coiled Intestines (Part 19) — Lower abdominal cavity (x=18..29, y=28..32, z=14..17)
-  for (let x = 18; x <= 29; x++) {
-    for (let y = 28; y <= 32; y++) {
-      for (let z = 15; z <= 17; z++) {
+  // 19. Coiled Intestines (Part 19) — follows waist_joint
+  const [ix0, ix1] = scSpan(18, 29);
+  const [iy0, iy1] = scSpan(28, 32);
+  const [iz0, iz1] = scSpan(15, 17);
+  for (let x = ix0; x <= ix1; x++) {
+    for (let y = iy0; y <= iy1; y++) {
+      for (let z = iz0; z <= iz1; z++) {
         const wave = (x + y * 2 + z) % 3;
         const r = wave === 0 ? 255 : 247;
         const g = wave === 0 ? 169 : 131;
@@ -404,52 +488,71 @@ export function populateInternalOrgans() {
 }
 
 /**
- * Initializes the Complete Hyperbuild 4D Articulated Character (48x72x32)
- * with 11 Outer Body Parts (hollow anatomical shells on Head & Torso) +
- * 9 Volumetric 3D Internal Organs + 9 Articulated Skeletal Joints!
+ * Initializes the Complete Hyperbuild 4D Articulated Character scaled proportionally to `headSize`!
+ * Default `headSize = 16` -> Head is 16x16x16, Upper/Lower Torso are 16x12x8 each,
+ * Arms/Legs are 8x12x8 each, Workspace is 48x72x32.
+ * If `headSize` is e.g. 8, 12, 20, or 24, the entire body, limbs, organs, and joints scale proportionally!
  */
-export function initCharacterTemplate() {
-  initEngine(48, 72, 32);
+export function initCharacterTemplate(headSize = engine.headSize || 16) {
+  const H = Math.max(8, Math.min(28, Math.round(Number(headSize) || 16)));
+  syncProportionalRigToHeadSize(H);
+  const s = H / 16.0;
+  const gx = Math.max(12, Math.round(48 * s));
+  const gy = Math.max(18, Math.round(72 * s));
+  const gz = Math.max(8, Math.round(32 * s));
+
+  initEngine(gx, gy, gz);
+  engine.headSize = H;
   engine.isCharacterMode = true;
   engine.activePartFilter = 0;
   engine.paintTargetPart = 0;
   engine.partHidden.fill(0);
 
-  // Legs (4 outer parts: 8, 9, 10, 11)
-  fillBoxPart(16, 2, 12, 23, 13, 19, 9, [45, 70, 150, 255], 0, 6);   // 9. L-Leg Lower
-  fillBoxPart(16, 14, 12, 23, 25, 19, 8, [55, 85, 175, 255], 0, 6);  // 8. L-Leg Upper
-  fillBoxPart(24, 2, 12, 31, 13, 19, 11, [45, 70, 150, 255], 0, 6);  // 11. R-Leg Lower
-  fillBoxPart(24, 14, 12, 31, 25, 19, 10, [55, 85, 175, 255], 0, 6); // 10. R-Leg Upper
-  // Boot soles
-  fillBoxPart(16, 2, 12, 23, 4, 19, 9, [30, 36, 50, 255], 0, 3);
-  fillBoxPart(24, 2, 12, 31, 4, 19, 11, [30, 36, 50, 255], 0, 3);
+  const scSpan = (v1, v2) => [Math.round(v1 * s), Math.max(Math.round(v1 * s), Math.round((v2 + 1) * s) - 1)];
+  const scBox = (x1, x2, y1, y2, z1, z2) => {
+    const [xs1, xs2] = scSpan(x1, x2);
+    const [ys1, ys2] = scSpan(y1, y2);
+    const [zs1, zs2] = scSpan(z1, z2);
+    return [xs1, ys1, zs1, xs2, ys2, zs2];
+  };
+  const shellThickTorso = Math.max(1, Math.round(1 * s));
+  const shellThickHead = Math.max(1, Math.round(2 * s));
 
-  // Torso (2 outer parts: 3 Lower Torso & 2 Upper Torso — 1-voxel hollow shell so internal organs fit inside!)
-  fillBoxPart(16, 26, 12, 31, 37, 19, 3, [0, 150, 165, 255], 1, 6);  // 3. Lower Torso Shell
-  fillBoxPart(16, 38, 12, 31, 49, 19, 2, [0, 180, 195, 255], 1, 6);  // 2. Upper Torso Shell
+  // Legs (4 outer parts: 8, 9, 10, 11)
+  fillBoxPart(...scBox(16, 23, 2, 13, 12, 19), 9, [45, 70, 150, 255], 0, 6);   // 9. L-Leg Lower (follows l_knee_joint)
+  fillBoxPart(...scBox(16, 23, 14, 25, 12, 19), 8, [55, 85, 175, 255], 0, 6);  // 8. L-Leg Upper (follows l_hip_joint)
+  fillBoxPart(...scBox(24, 31, 2, 13, 12, 19), 11, [45, 70, 150, 255], 0, 6);  // 11. R-Leg Lower (follows r_knee_joint)
+  fillBoxPart(...scBox(24, 31, 14, 25, 12, 19), 10, [55, 85, 175, 255], 0, 6); // 10. R-Leg Upper (follows r_hip_joint)
+  // Boot soles
+  fillBoxPart(...scBox(16, 23, 2, 4, 12, 19), 9, [30, 36, 50, 255], 0, 3);
+  fillBoxPart(...scBox(24, 31, 2, 4, 12, 19), 11, [30, 36, 50, 255], 0, 3);
+
+  // Torso (2 outer parts: 3 Lower Torso & 2 Upper Torso — hollow shell so internal organs fit inside!)
+  fillBoxPart(...scBox(16, 31, 26, 37, 12, 19), 3, [0, 150, 165, 255], shellThickTorso, 6);
+  fillBoxPart(...scBox(16, 31, 38, 49, 12, 19), 2, [0, 180, 195, 255], shellThickTorso, 6);
   // Belt accent on Lower Torso
-  fillBoxPart(16, 26, 19, 31, 27, 19, 3, [40, 48, 68, 255], 0, 2);
-  fillBoxPart(22, 26, 19, 25, 27, 19, 3, [255, 190, 11, 255], 0, 0);
+  fillBoxPart(...scBox(16, 31, 26, 27, 19, 19), 3, [40, 48, 68, 255], 0, 2);
+  fillBoxPart(...scBox(22, 25, 26, 27, 19, 19), 3, [255, 190, 11, 255], 0, 0);
 
   // Arms (4 outer parts: 4, 5, 6, 7)
-  fillBoxPart(8, 26, 12, 15, 37, 19, 5, [225, 170, 135, 255], 0, 6);  // 5. L-Arm Lower
-  fillBoxPart(8, 38, 12, 15, 49, 19, 4, [0, 165, 180, 255], 0, 6);    // 4. L-Arm Upper
-  fillBoxPart(32, 26, 12, 39, 37, 19, 7, [225, 170, 135, 255], 0, 6); // 7. R-Arm Lower
-  fillBoxPart(32, 38, 12, 39, 49, 19, 6, [0, 165, 180, 255], 0, 6);   // 6. R-Arm Upper
+  fillBoxPart(...scBox(8, 15, 26, 37, 12, 19), 5, [225, 170, 135, 255], 0, 6);  // 5. L-Arm Lower (follows l_elbow_joint)
+  fillBoxPart(...scBox(8, 15, 38, 49, 12, 19), 4, [0, 165, 180, 255], 0, 6);    // 4. L-Arm Upper (follows l_shoulder_joint)
+  fillBoxPart(...scBox(32, 39, 26, 37, 12, 19), 7, [225, 170, 135, 255], 0, 6); // 7. R-Arm Lower (follows r_elbow_joint)
+  fillBoxPart(...scBox(32, 39, 38, 49, 12, 19), 6, [0, 165, 180, 255], 0, 6);   // 6. R-Arm Upper (follows r_shoulder_joint)
 
-  // Head (Part 1: 16x16x16 at 16..31, 50..65, 8..23 — 2-voxel hollow cranial shell so Brain & Optic Bulbs live inside!)
-  fillBoxPart(16, 50, 8, 31, 65, 23, 1, [235, 180, 145, 255], 2, 5);
+  // Head (Part 1: HxHxH cranial shell — follows neck_joint)
+  fillBoxPart(...scBox(16, 31, 50, 65, 8, 23), 1, [235, 180, 145, 255], shellThickHead, 5);
   // Hair cap & back
-  fillBoxPart(16, 63, 8, 31, 65, 23, 1, [65, 40, 25, 255], 0, 4);
-  fillBoxPart(16, 50, 8, 31, 65, 9, 1, [65, 40, 25, 255], 0, 4);
-  // Eyes on front face (z=23)
-  fillBoxPart(18, 56, 23, 19, 57, 23, 1, [255, 255, 255, 255], 0, 0);
-  fillBoxPart(20, 56, 23, 21, 57, 23, 1, [40, 60, 160, 255], 0, 0);
-  fillBoxPart(26, 56, 23, 27, 57, 23, 1, [40, 60, 160, 255], 0, 0);
-  fillBoxPart(28, 56, 23, 29, 57, 23, 1, [255, 255, 255, 255], 0, 0);
+  fillBoxPart(...scBox(16, 31, 63, 65, 8, 23), 1, [65, 40, 25, 255], 0, 4);
+  fillBoxPart(...scBox(16, 31, 50, 65, 8, 9), 1, [65, 40, 25, 255], 0, 4);
+  // Eyes on front face
+  fillBoxPart(...scBox(18, 19, 56, 57, 23, 23), 1, [255, 255, 255, 255], 0, 0);
+  fillBoxPart(...scBox(20, 21, 56, 57, 23, 23), 1, [40, 60, 160, 255], 0, 0);
+  fillBoxPart(...scBox(26, 27, 56, 57, 23, 23), 1, [40, 60, 160, 255], 0, 0);
+  fillBoxPart(...scBox(28, 29, 56, 57, 23, 23), 1, [255, 255, 255, 255], 0, 0);
 
-  // Now populate all 9 Volumetric 3D Internal Organs inside the character!
-  populateInternalOrgans();
+  // Populate all 9 Volumetric 3D Internal Organs scaled proportionally
+  populateInternalOrgans(H);
 
   updateCulling();
 }
@@ -464,7 +567,6 @@ function isOccluder(x, y, z, selfPart) {
   const alpha = engine.color[idx * 4 + 3];
   if (alpha < 255) return false;
   if (engine.isCharacterMode && engine.xrayOuterShell && pid >= 1 && pid <= 11) {
-    // When X-Ray shell is enabled, outer shell parts are translucent and don't occlude internal organs
     if (pid !== selfPart) return false;
   }
   if (engine.isCharacterMode && pid !== selfPart) return false;
@@ -507,13 +609,11 @@ export function updateCulling() {
 
 /**
  * Fast 3D Voxel DDA Raycast (Amanatides & Woo)
- * Replaces O(N^3) brute-force box loops with O(gridX + gridY + gridZ) traversal.
  */
 export function raycastVoxelDDA(rayOrigin, rayDir, maxDist = 260.0) {
   const { gridX: gx, gridY: gy, gridZ: gz, active, mask, partId } = engine;
   if (!active) return { hit: false };
 
-  // Intersect ray with workspace AABB [0,0,0]..[gx,gy,gz] first
   let tMin = 0.0;
   let tMax = maxDist;
   const boundsMax = [gx, gy, gz];
@@ -555,7 +655,6 @@ export function raycastVoxelDDA(rayOrigin, rayDir, maxDist = 260.0) {
   let tMaxZ = stepZ > 0 ? (iz + 1 - pz) * tDeltaZ : (stepZ < 0 ? (pz - iz) * tDeltaZ : 1e30);
 
   let hitNorm = [0, 1, 0];
-  // Determine initial entry normal if starting outside grid
   if (tMin > 0) {
     const eps = 1e-3;
     if (Math.abs(px - 0) < eps) hitNorm = [-1, 0, 0];
@@ -572,7 +671,6 @@ export function raycastVoxelDDA(rayOrigin, rayDir, maxDist = 260.0) {
       const idx = iz * gx * gy + iy * gx + ix;
       if (active[idx] && mask[idx] !== 0) {
         const pid = partId[idx];
-        // When X-Ray shell is ON and user is NOT soloing an outer part, let ray pass through outer shell to hit internal organs!
         const skipOuterInXray =
           engine.isCharacterMode &&
           engine.xrayOuterShell &&
@@ -623,7 +721,6 @@ export function raycastVoxelDDA(rayOrigin, rayDir, maxDist = 260.0) {
     if (ix < 0 || ix >= gx || iy < 0 || iy >= gy || iz < 0 || iz >= gz) break;
   }
 
-  // Fallback plane intersection (Hyperplane or Ground Y=0)
   let placeX = -1, placeY = -1, placeZ = -1;
   if (engine.hpState !== 0) {
     if (engine.hpState === 2 && Math.abs(rayDir[0]) > 1e-6) {
@@ -741,7 +838,6 @@ function setSingleVoxelWithMirror(x, y, z, activeFlag, partId, rgba) {
   applyAt(x, y, z, partId);
   if (engine.mirrorX) {
     const mx = engine.gridX - 1 - x;
-    // Map left/right limb partId automatically when mirrored
     let mirrorPid = partId;
     if (partId === 4) mirrorPid = 6;
     else if (partId === 6) mirrorPid = 4;
@@ -938,8 +1034,6 @@ export function commitPaste() {
 // ==================== HT3D BINARY SERIALIZATION (C-STRUCT COMPATIBLE) ====================
 export function serializeHT3DBuffer() {
   const { gridX: gx, gridY: gy, gridZ: gz, totalVoxels, active, mask, partId, color, isCharacterMode } = engine;
-  // Header: 5 * 4 = 20 bytes (magic, gx, gy, gz, charFlag)
-  // Body: totalVoxels * 7 bytes (active:1, mask:1, partId:1, r:1, g:1, b:1, a:1)
   const buf = new ArrayBuffer(20 + totalVoxels * 7);
   const view = new DataView(buf);
   view.setUint32(0, HT3D_MAGIC, true);
@@ -976,6 +1070,10 @@ export function deserializeHT3DBuffer(arrayBuffer) {
 
     initEngine(gx, gy, gz);
     engine.isCharacterMode = charFlag !== 0;
+    if (engine.isCharacterMode) {
+      const inferredHead = Math.max(8, Math.min(28, Math.round(gx / 3)));
+      syncProportionalRigToHeadSize(inferredHead);
+    }
     const total = gx * gy * gz;
     const bytes = new Uint8Array(arrayBuffer, 20);
     const maxRead = Math.min(total, Math.floor(bytes.byteLength / 7));
@@ -996,18 +1094,331 @@ export function deserializeHT3DBuffer(arrayBuffer) {
   return false;
 }
 
-// ==================== 4D MINER & HYPERBUILD 4D VOLUMETRIC PNG SHEET GENERATOR ====================
+// ==================== HYPERBUILD 4D (.HB) EXPORT & IMPORT FORMAT ====================
 /**
- * Generates raw RGBA pixel buffer (width, height, Uint8ClampedArray) for the 3 Hyperbuild 4D / 4D Miner formats:
- * 1. '4dminer-volumetric': 256x256 4D Miner Multi-Layer Volumetric Cross-Section Sheet
- *    - Quadrant W0 (0,0 .. 127,127): 16 Z-Slices (4x4 grid of 32x36 thumbnails or 8x4 grid of full Z slices) of full composite character + organs
- *    - Quadrant W1 (128,0 .. 255,127): Outer Body Shell Volumetric Slices (Parts 1..11)
- *    - Quadrant W2 (0,128 .. 127,255): Internal 3D Organs & Skeleton Volumetric Slices (Parts 12..20: Brain, Optic, Ribcage/Spine, Heart, Lungs, Stomach, Liver, Intestines, 4D Hyper-Gland)
- *    - Quadrant W3 (128,128 .. 255,255): Individual Organ & Body Part Volumetric Cross-Section Atlas + 4D Metadata Header Strip
- * 2. 'anatomical-20parts': 256x256 20-Part Anatomical Multi-Depth Sheet (11 Outer Parts + 9 Internal 3D Organs)
- * 3. 'raw-z-strip': (gridX * gridZ) x gridY Lossless 3D Texture Z-Slice Strip (100% of voxels)
+ * Infers which body part ID (1..11) a voxel at (x, y, z) belongs to based on proportional head size bounds,
+ * or resolves from `followJoint` name if provided.
  */
-export function build4DMinerAtlasPixels(format = engine.exportFormat) {
+export function resolvePartIdFromJointOrCoords(x, y, z, followJoint, explicitPartId) {
+  if (explicitPartId !== undefined && explicitPartId !== null && explicitPartId >= 0 && explicitPartId <= NUM_BODY_PARTS) {
+    return Number(explicitPartId);
+  }
+  if (followJoint) {
+    const cleanJ = String(followJoint).trim().toLowerCase();
+    for (let p = 1; p <= NUM_BODY_PARTS; p++) {
+      if (BODY_PART_SPECS[p].followJoint.toLowerCase() === cleanJ) {
+        return p;
+      }
+    }
+  }
+  if (!engine.isCharacterMode) return 0;
+  for (let p = 1; p <= NUM_OUTER_PARTS; p++) {
+    const [bx, by, bz, bw, bh, bd] = BODY_PART_SPECS[p].bounds;
+    if (x >= bx && x < bx + bw && y >= by && y < by + bh && z >= bz && z < bz + bd) {
+      return p;
+    }
+  }
+  return 1;
+}
+
+/**
+ * Generates the complete Hyperbuild 4D `.hb` data structure containing:
+ * 1. Character `headSize` (e.g. [16, 16, 16]) and proportional body scaling ratios (`bodyProportionsFromHead`)
+ * 2. All skeletal `joints` with their 3D pivot coordinates and parent-child part bindings
+ * 3. All `parts` (11 outer segments + 9 internal organs) and which joint each part follows (`followJoint`)
+ * 4. Every active pixel/voxel (`voxels`) with its `x, y, z` coordinate, `color` (#RRGGBBAA & [r,g,b,a]),
+ *    `partId`, `partName`, `followJoint`, and `jointOffset` ([dx, dy, dz] relative to the joint it follows).
+ */
+export function generateHyperbuildHBObject(projectName = 'hyperbuild_4d_character') {
+  const { gridX: gx, gridY: gy, gridZ: gz, active, partId, color, isCharacterMode } = engine;
+  const H = engine.isCharacterMode ? (engine.headSize || Math.max(8, Math.round(gx / 3))) : (engine.headSize || 16);
+  if (engine.isCharacterMode) {
+    syncProportionalRigToHeadSize(H);
+  }
+  const proportions = computeBodyProportionsFromHead(H);
+
+  const partCounts = new Uint32Array(NUM_BODY_PARTS + 1);
+  const voxels = [];
+
+  for (let z = 0; z < gz; z++) {
+    for (let y = 0; y < gy; y++) {
+      for (let x = 0; x < gx; x++) {
+        const idx = z * gx * gy + y * gx + x;
+        if (!active[idx]) continue;
+        const pid = partId[idx];
+        if (pid <= NUM_BODY_PARTS) partCounts[pid]++;
+        const c4 = idx * 4;
+        const r = color[c4], g = color[c4 + 1], b = color[c4 + 2], a = color[c4 + 3];
+        const hex = rgbaToHex(r, g, b, a);
+        const spec = BODY_PART_SPECS[pid] || BODY_PART_SPECS[0];
+        const jointInfo = getJointForPart(pid);
+        const jPos = jointInfo.jointPos;
+
+        voxels.push({
+          x,
+          y,
+          z,
+          color: hex,
+          rgba: [r, g, b, a],
+          partId: pid,
+          part: spec.name,
+          followJoint: jointInfo.jointId,
+          jointOffset: [
+            Number((x - jPos[0]).toFixed(2)),
+            Number((y - jPos[1]).toFixed(2)),
+            Number((z - jPos[2]).toFixed(2)),
+          ],
+        });
+      }
+    }
+  }
+
+  const parts = [];
+  for (let p = 1; p <= NUM_BODY_PARTS; p++) {
+    const spec = BODY_PART_SPECS[p];
+    const jointInfo = getJointForPart(p);
+    parts.push({
+      partId: p,
+      name: spec.name,
+      category: spec.category,
+      tissue: spec.tissue,
+      followJoint: jointInfo.jointId,
+      followJointName: jointInfo.jointName,
+      jointPivot: jointInfo.jointPos,
+      parentCavityPartId: spec.parentPart || null,
+      bounds: [...spec.bounds],
+      voxelCount: partCounts[p],
+    });
+  }
+
+  return {
+    format: HB_FORMAT_VERSION,
+    extension: '.hb',
+    engine: 'Hyperbuild 4D',
+    projectName,
+    isCharacterMode: !!isCharacterMode,
+    headSize: [H, H, H],
+    headCubeDimension: H,
+    bodyProportionsFromHead: proportions,
+    workspaceDimensions: [gx, gy, gz],
+    totalVoxels: voxels.length,
+    joints: CHAR_JOINTS.map((j) => ({
+      jointId: j.id,
+      name: j.name,
+      pivot: [...j.pos],
+      parentPartId: j.parentPart,
+      childPartId: j.childPart,
+      parentAnchor: j.scaledParentAnchor || [...j.parentAnchor],
+      childAnchor: j.scaledChildAnchor || [...j.childAnchor],
+    })),
+    parts,
+    voxels,
+  };
+}
+
+export function serializeHBFile(projectName = 'hyperbuild_4d_character') {
+  const hbObj = generateHyperbuildHBObject(projectName);
+  return JSON.stringify(hbObj, null, 2);
+}
+
+export function buildHBPreviewSnippet(projectName = 'hyperbuild_4d_character') {
+  const hb = generateHyperbuildHBObject(projectName);
+  const sampleVoxels = hb.voxels.slice(0, 5).map(
+    (v) => `  { "x": ${v.x}, "y": ${v.y}, "z": ${v.z}, "color": "${v.color}", "partId": ${v.partId}, "followJoint": "${v.followJoint}" }`
+  );
+  return [
+    `// HYPERBUILD 4D (.hb) — ${projectName}.hb`,
+    `"format": "${hb.format}",`,
+    `"headSize": [${hb.headSize.join(', ')}] (Proportional Scale: ${hb.bodyProportionsFromHead.scaleFactor}x),`,
+    `"bodyProportionsFromHead": {`,
+    `  "head": [${hb.bodyProportionsFromHead.head.join('x')}], "fullTorso": [${hb.bodyProportionsFromHead.fullTorso.join('x')}],`,
+    `  "armUpper": [${hb.bodyProportionsFromHead.armUpper.join('x')}], "legUpper": [${hb.bodyProportionsFromHead.legUpper.join('x')}]`,
+    `},`,
+    `"workspaceDimensions": [${hb.workspaceDimensions.join(', ')}],`,
+    `"totalVoxels": ${hb.totalVoxels},`,
+    `"voxels": [`,
+    ...sampleVoxels,
+    hb.voxels.length > 5 ? `  ... (+${hb.voxels.length - 5} more voxels with XYZ, Color & Joint Binding)` : '',
+    `]`,
+  ].filter(Boolean).join('\n');
+}
+
+/**
+ * Imports a `.hb` file (supports JSON `.hb` object as well as line-based `.hb` text format)
+ * and reconstructs the character head size, proportional body structure, joint hierarchy,
+ * and every voxel's XYZ coordinate, color, partId, and joint binding!
+ */
+export function deserializeHBFile(rawContent) {
+  if (!rawContent) return false;
+  let text = '';
+  if (typeof rawContent === 'string') {
+    text = rawContent.trim();
+  } else if (rawContent instanceof ArrayBuffer) {
+    text = new TextDecoder('utf-8').decode(rawContent).trim();
+  } else if (typeof rawContent === 'object') {
+    text = JSON.stringify(rawContent);
+  }
+  if (!text) return false;
+
+  // 1. Try JSON-based .hb structure (standard Hyperbuild 4D .hb format)
+  if (text.startsWith('{')) {
+    try {
+      const data = JSON.parse(text);
+      if (!data || (!Array.isArray(data.voxels) && !Array.isArray(data.pixels) && !data.headSize)) {
+        return false;
+      }
+
+      // Extract headSize (e.g. [16, 16, 16] or number 16)
+      let H = 16;
+      if (Array.isArray(data.headSize) && data.headSize.length >= 1) {
+        H = Math.max(8, Math.min(28, Math.round(Number(data.headSize[0]) || 16)));
+      } else if (typeof data.headSize === 'number' || typeof data.headCubeDimension === 'number') {
+        H = Math.max(8, Math.min(28, Math.round(Number(data.headSize || data.headCubeDimension) || 16)));
+      }
+
+      const props = computeBodyProportionsFromHead(H);
+      let [gx, gy, gz] = props.workspaceDimensions;
+      if (Array.isArray(data.workspaceDimensions) && data.workspaceDimensions.length === 3) {
+        gx = Math.max(4, Math.min(128, Math.round(Number(data.workspaceDimensions[0]) || gx)));
+        gy = Math.max(4, Math.min(128, Math.round(Number(data.workspaceDimensions[1]) || gy)));
+        gz = Math.max(4, Math.min(128, Math.round(Number(data.workspaceDimensions[2]) || gz)));
+      }
+
+      const voxList = Array.isArray(data.voxels) ? data.voxels : (Array.isArray(data.pixels) ? data.pixels : []);
+
+      // Ensure workspace is large enough to hold any voxel coordinates in the .hb file
+      for (const v of voxList) {
+        const vx = Number(v.x ?? (Array.isArray(v.xyz) ? v.xyz[0] : 0));
+        const vy = Number(v.y ?? (Array.isArray(v.xyz) ? v.xyz[1] : 0));
+        const vz = Number(v.z ?? (Array.isArray(v.xyz) ? v.xyz[2] : 0));
+        if (vx + 1 > gx && vx + 1 <= 128) gx = vx + 1;
+        if (vy + 1 > gy && vy + 1 <= 128) gy = vy + 1;
+        if (vz + 1 > gz && vz + 1 <= 128) gz = vz + 1;
+      }
+
+      syncProportionalRigToHeadSize(H);
+
+      // Update joint positions or part followJoint mappings if customized in the .hb file
+      if (Array.isArray(data.joints)) {
+        for (const jData of data.joints) {
+          const jId = jData.jointId || jData.id;
+          const targetJ = CHAR_JOINTS.find((j) => j.id === jId);
+          if (targetJ && Array.isArray(jData.pivot || jData.pos) && (jData.pivot || jData.pos).length === 3) {
+            const p = jData.pivot || jData.pos;
+            targetJ.pos = [Number(p[0]), Number(p[1]), Number(p[2])];
+          }
+        }
+      }
+
+      if (Array.isArray(data.parts)) {
+        for (const pData of data.parts) {
+          const pid = Number(pData.partId ?? pData.id);
+          if (pid >= 1 && pid <= NUM_BODY_PARTS && BODY_PART_SPECS[pid]) {
+            if (pData.followJoint) BODY_PART_SPECS[pid].followJoint = String(pData.followJoint);
+            if (Array.isArray(pData.bounds) && pData.bounds.length === 6) {
+              BODY_PART_SPECS[pid].bounds = pData.bounds.map(Number);
+            }
+          }
+        }
+      }
+
+      // If the .hb file specifies headSize but has an empty voxel list (e.g. a template .hb),
+      // generate the proportional character structure for that headSize!
+      if (voxList.length === 0 && (data.generateTemplateIfEmpty || data.headSize)) {
+        initCharacterTemplate(H);
+        return true;
+      }
+
+      initEngine(gx, gy, gz);
+      engine.headSize = H;
+      engine.isCharacterMode = data.isCharacterMode !== undefined ? !!data.isCharacterMode : true;
+
+      for (const v of voxList) {
+        const x = Math.round(Number(v.x ?? (Array.isArray(v.xyz) ? v.xyz[0] : -1)));
+        const y = Math.round(Number(v.y ?? (Array.isArray(v.xyz) ? v.xyz[1] : -1)));
+        const z = Math.round(Number(v.z ?? (Array.isArray(v.xyz) ? v.xyz[2] : -1)));
+        if (!inBounds(x, y, z, gx, gy, gz)) continue;
+
+        let rgba = [0, 210, 255, 255];
+        if (Array.isArray(v.rgba) && v.rgba.length >= 3) {
+          rgba = [
+            Math.max(0, Math.min(255, Number(v.rgba[0]) || 0)),
+            Math.max(0, Math.min(255, Number(v.rgba[1]) || 0)),
+            Math.max(0, Math.min(255, Number(v.rgba[2]) || 0)),
+            v.rgba[3] !== undefined ? Math.max(0, Math.min(255, Number(v.rgba[3]))) : 255,
+          ];
+        } else if (typeof v.color === 'string') {
+          rgba = hexToRgba(v.color);
+        } else if (Array.isArray(v.color) && v.color.length >= 3) {
+          rgba = [
+            Number(v.color[0]) || 0,
+            Number(v.color[1]) || 0,
+            Number(v.color[2]) || 0,
+            v.color[3] !== undefined ? Number(v.color[3]) : 255,
+          ];
+        }
+
+        const pid = resolvePartIdFromJointOrCoords(x, y, z, v.followJoint || v.joint, v.partId ?? v.part_id);
+        setVoxelRaw(x, y, z, pid, rgba[0], rgba[1], rgba[2], rgba[3], 0);
+      }
+
+      updateCulling();
+      return true;
+    } catch {
+      // Fall through to text line parser if not JSON
+    }
+  }
+
+  // 2. Support line-based .hb format (e.g. HEAD_SIZE 16 16 16 / VOXEL x y z #RRGGBBAA partId followJoint)
+  const lines = text.split(/\r?\n/);
+  let H = 16;
+  let customDims = null;
+  const parsedVoxels = [];
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#') || line.startsWith('//')) continue;
+    const tokens = line.split(/[\s,]+/);
+    const cmd = tokens[0].toUpperCase();
+    if (cmd === 'HEAD_SIZE' || cmd === 'HEAD') {
+      H = Math.max(8, Math.min(28, parseInt(tokens[1], 10) || 16));
+    } else if (cmd === 'GRID' || cmd === 'WORKSPACE') {
+      customDims = [parseInt(tokens[1], 10) || 48, parseInt(tokens[2], 10) || 72, parseInt(tokens[3], 10) || 32];
+    } else if (cmd === 'VOXEL' || cmd === 'PIXEL' || cmd === 'V') {
+      const x = parseInt(tokens[1], 10);
+      const y = parseInt(tokens[2], 10);
+      const z = parseInt(tokens[3], 10);
+      const colStr = tokens[4] || '#00D2FFFF';
+      const pid = tokens[5] !== undefined && !Number.isNaN(parseInt(tokens[5], 10)) ? parseInt(tokens[5], 10) : undefined;
+      const joint = tokens[6] || (pid === undefined ? tokens[5] : undefined);
+      if (!Number.isNaN(x) && !Number.isNaN(y) && !Number.isNaN(z)) {
+        parsedVoxels.push({ x, y, z, color: colStr, partId: pid, followJoint: joint });
+      }
+    }
+  }
+
+  if (parsedVoxels.length > 0) {
+    syncProportionalRigToHeadSize(H);
+    const props = computeBodyProportionsFromHead(H);
+    const [gx, gy, gz] = customDims || props.workspaceDimensions;
+    initEngine(gx, gy, gz);
+    engine.headSize = H;
+    engine.isCharacterMode = true;
+    for (const v of parsedVoxels) {
+      if (!inBounds(v.x, v.y, v.z, gx, gy, gz)) continue;
+      const rgba = hexToRgba(v.color);
+      const pid = resolvePartIdFromJointOrCoords(v.x, v.y, v.z, v.followJoint, v.partId);
+      setVoxelRaw(v.x, v.y, v.z, pid, rgba[0], rgba[1], rgba[2], rgba[3], 0);
+    }
+    updateCulling();
+    return true;
+  }
+
+  return false;
+}
+
+// ==================== HYPERBUILD 4D VOLUMETRIC PNG SHEET GENERATOR ====================
+export function buildHyperbuildAtlasPixels(format = engine.exportFormat) {
   const { gridX: gx, gridY: gy, gridZ: gz, active, partId, color } = engine;
 
   const setPx = (buf, w, h, x, y, r, g, b, a) => {
@@ -1044,7 +1455,6 @@ export function build4DMinerAtlasPixels(format = engine.exportFormat) {
   const pixels = new Uint8ClampedArray(w * h * 4);
 
   if (format === 'anatomical-20parts') {
-    // 5 columns x 4 rows of 50x62 cells for all 20 anatomical parts (1..11 Outer + 12..20 Internal Organs)
     for (let p = 1; p <= 20; p++) {
       const spec = BODY_PART_SPECS[p];
       if (!spec) continue;
@@ -1053,7 +1463,6 @@ export function build4DMinerAtlasPixels(format = engine.exportFormat) {
       const baseX = cellCol * 51 + 2;
       const baseY = cellRow * 63 + 2;
 
-      // Subtle cell frame for organ vs outer part
       const borderCol = p >= 12 ? [180, 70, 220, 90] : [65, 130, 255, 90];
       for (let bx = 0; bx < 49; bx++) {
         setPx(pixels, w, h, baseX + bx, baseY, ...borderCol);
@@ -1065,7 +1474,6 @@ export function build4DMinerAtlasPixels(format = engine.exportFormat) {
       }
 
       const [minX, minY, minZ, sx, sy, sz] = spec.bounds || [0, 0, 0, 16, 16, 16];
-      // Pack 6 Z-depth cross-sections across the cell so both outer shell AND interior organ volume are preserved!
       for (let zOff = 0; zOff < sz; zOff++) {
         const subCol = zOff % 3;
         const subRow = Math.floor(zOff / 3);
@@ -1090,15 +1498,15 @@ export function build4DMinerAtlasPixels(format = engine.exportFormat) {
     return { width: w, height: h, pixels };
   }
 
-  // Default: '4dminer-volumetric' (True 4D Miner Volumetric W-Hyperlayer + Z-Slice Atlas)
-  // Helper to render a Z-slice (or composite of Z-range) into a target tile (dstX, dstY, tileW=32, tileH=32)
+  // Default ('hb-structure' preview & 'hyperbuild-volumetric'):
+  // 256x256 Hyperbuild 4D Volumetric W-Layer + Z-Slice Atlas
   const renderVolumetricSliceTile = (dstX, dstY, zStart, zEnd, filterMode) => {
     for (let z = zStart; z <= zEnd; z++) {
       if (z < 0 || z >= gz) continue;
       for (let ty = 0; ty < 32; ty++) {
         for (let tx = 0; tx < 32; tx++) {
-          const vx = Math.min(gx - 1, 8 + tx);
-          const vy = Math.min(gy - 1, 65 - ty * 2);
+          const vx = Math.min(gx - 1, Math.floor(((8 + tx) / 48) * gx));
+          const vy = Math.min(gy - 1, Math.floor(((65 - ty * 2) / 72) * gy));
           for (let dy = 0; dy < 2; dy++) {
             const cy = Math.max(0, vy - dy);
             if (!inBounds(vx, cy, z)) continue;
@@ -1117,28 +1525,16 @@ export function build4DMinerAtlasPixels(format = engine.exportFormat) {
     }
   };
 
-  // Quadrant W0 (0,0 .. 127,127): 16 Z-Slices (z = 8..23, where the character & organs live!) of Full Composite 4D Volume
+  const zStartBase = Math.max(0, Math.floor((8 / 32) * gz));
   for (let s = 0; s < 16; s++) {
     const col = s % 4;
     const row = Math.floor(s / 4);
-    renderVolumetricSliceTile(col * 32, row * 32, 8 + s, 8 + s, 'all');
+    const zSlice = Math.min(gz - 1, zStartBase + Math.floor((s / 16) * Math.max(1, gz * 0.5)));
+    renderVolumetricSliceTile(col * 32, row * 32, zSlice, zSlice, 'all');
+    renderVolumetricSliceTile(128 + col * 32, row * 32, zSlice, zSlice, 'outer');
+    renderVolumetricSliceTile(col * 32, 128 + row * 32, zSlice, zSlice, 'organs');
   }
 
-  // Quadrant W1 (128,0 .. 255,127): 16 Z-Slices (z = 8..23) of Outer Body Shell Only (Parts 1..11)
-  for (let s = 0; s < 16; s++) {
-    const col = s % 4;
-    const row = Math.floor(s / 4);
-    renderVolumetricSliceTile(128 + col * 32, row * 32, 8 + s, 8 + s, 'outer');
-  }
-
-  // Quadrant W2 (0,128 .. 127,255): 16 Z-Slices (z = 8..23) of Internal 3D Organs & Skeleton Only (Parts 12..20)
-  for (let s = 0; s < 16; s++) {
-    const col = s % 4;
-    const row = Math.floor(s / 4);
-    renderVolumetricSliceTile(col * 32, 128 + row * 32, 8 + s, 8 + s, 'organs');
-  }
-
-  // Quadrant W3 (128,128 .. 255,255): High-density Organ Volumetric Cross-Section Unwraps for Parts 12..20
   for (let orgIdx = 0; orgIdx < 9; orgIdx++) {
     const pid = 12 + orgIdx;
     const spec = BODY_PART_SPECS[pid];
@@ -1149,7 +1545,6 @@ export function build4DMinerAtlasPixels(format = engine.exportFormat) {
     const oy = 128 + cellRow * 40 + 2;
     const [minX, minY, minZ, sx, sy, sz] = spec.bounds;
 
-    // Draw each Z-layer of the organ side-by-side inside its 40x38 cell
     for (let z = 0; z < sz; z++) {
       const sliceX = ox + (z % 3) * 13;
       const sliceY = oy + Math.floor(z / 3) * 12;
@@ -1168,7 +1563,6 @@ export function build4DMinerAtlasPixels(format = engine.exportFormat) {
     }
   }
 
-  // Bottom-right 4D Miner Palette & Part Color Key Bar (y = 250..255, x = 128..255)
   for (let p = 1; p <= 20; p++) {
     const [r, g, b, a] = hexToRgba(BODY_PART_SPECS[p].color);
     for (let py = 250; py < 256; py++) {
@@ -1182,47 +1576,18 @@ export function build4DMinerAtlasPixels(format = engine.exportFormat) {
 }
 
 export function generateHyperbuild4DRigJSON(baseFilename = 'hyperbuild_4d_character') {
-  const partVoxelCounts = new Uint32Array(NUM_BODY_PARTS + 1);
-  for (let i = 0; i < engine.totalVoxels; i++) {
-    if (engine.active[i]) {
-      const p = engine.partId[i];
-      if (p <= NUM_BODY_PARTS) partVoxelCounts[p]++;
-    }
-  }
-
-  const outerParts = [];
-  const internalOrgans = [];
-
-  for (let p = 1; p <= NUM_BODY_PARTS; p++) {
-    const spec = BODY_PART_SPECS[p];
-    const [minX, minY, minZ, sx, sy, sz] = spec.bounds || [0, 0, 0, engine.gridX, engine.gridY, engine.gridZ];
-    const entry = {
-      id: p,
-      name: spec.name,
-      category: spec.category,
-      tissueType: spec.tissue,
-      activeVoxelCount: partVoxelCounts[p],
-      size: [sx, sy, sz],
-      worldBoundsMin: [minX, minY, minZ],
-    };
-    if (p <= 11) {
-      outerParts.push(entry);
-    } else {
-      entry.parentCavityPartId = spec.parentPart;
-      entry.criticalDamageMultiplier = spec.damageMult;
-      entry.wLayerIndex = 2; // 4D Miner W=2 Internal Organ Hyperlayer
-      internalOrgans.push(entry);
-    }
-  }
-
+  const hbObj = generateHyperbuildHBObject(baseFilename);
   return JSON.stringify(
     {
-      engineTarget: 'Hyperbuild_4D_And_4DMiner_Volumetric_Rig',
-      version: '4.0.0',
+      engineTarget: 'Hyperbuild_4D_Volumetric_Character_And_Organ_Rig',
+      version: '4.1.0',
+      hbStructureFile: `${baseFilename}.hb`,
       textureAtlasFile: `${baseFilename}.png`,
       atlasFormat: engine.exportFormat,
-      workspaceDimensions: [engine.gridX, engine.gridY, engine.gridZ],
-      totalActiveVoxels: engine.activeVoxelCount,
+      headSize: hbObj.headSize,
+      bodyProportionsFromHead: hbObj.bodyProportionsFromHead,
+      workspaceDimensions: hbObj.workspaceDimensions,
+      totalActiveVoxels: hbObj.totalVoxels,
       totalOuterBodyParts: NUM_OUTER_PARTS,
       totalInternalOrgans: NUM_ORGAN_PARTS,
       totalSkeletalJoints: NUM_JOINTS,
@@ -1232,17 +1597,8 @@ export function generateHyperbuild4DRigJSON(baseFilename = 'hyperbuild_4d_charac
         { w: 2, name: 'Internal_3D_Organs_And_Skeletal_Cavity', quadrantRect: [0, 128, 128, 128] },
         { w: 3, name: 'Individual_Organ_Volumetric_Unwraps', quadrantRect: [128, 128, 128, 128] },
       ],
-      outerBodyParts: outerParts,
-      internalOrgans,
-      joints: CHAR_JOINTS.map((j) => ({
-        jointId: j.id,
-        name: j.name,
-        position: j.pos,
-        parentPartId: j.parentPart,
-        childPartId: j.childPart,
-        parentAnchor: j.parentAnchor,
-        childAnchor: j.childAnchor,
-      })),
+      parts: hbObj.parts,
+      joints: hbObj.joints,
     },
     null,
     2
@@ -1250,52 +1606,50 @@ export function generateHyperbuild4DRigJSON(baseFilename = 'hyperbuild_4d_charac
 }
 
 export function generateHyperbuild4DSpecText(baseFilename = 'hyperbuild_4d_character') {
+  const props = computeBodyProportionsFromHead(engine.headSize || 16);
   return [
     '================================================================================',
-    'HYPERBUILD 4D & 4D-MINER VOLUMETRIC CHARACTER + INTERNAL ORGAN SPECIFICATION',
+    'HYPERBUILD 4D VOLUMETRIC CHARACTER, JOINT RIG & .HB STRUCTURE SPECIFICATION',
     '================================================================================',
     `PROJECT NAME: ${baseFilename}`,
-    `VOLUMETRIC PNG SHEET: ${baseFilename}.png (4D Miner Multi-Depth Cross-Section Atlas)`,
+    `HYPERBUILD 4D STRUCTURE FILE: ${baseFilename}.hb (Head Size, Voxel XYZ, Colors & Joint Bindings)`,
+    `VOLUMETRIC PNG SHEET: ${baseFilename}.png (Multi-Depth Cross-Section Atlas)`,
     `RIG & ORGAN METADATA: ${baseFilename}_rig_4d_organs.json`,
+    `CHARACTER HEAD SIZE: ${props.headSize.join(' x ')} (Proportional Scale Factor: ${props.scaleFactor}x)`,
+    `PROPORTIONAL TORSO: ${props.fullTorso.join(' x ')} | LIMBS: ${props.armUpper.join(' x ')}`,
     `WORKSPACE VOLUME: ${engine.gridX} x ${engine.gridY} x ${engine.gridZ} Voxels (${engine.activeVoxelCount} Active Voxels)`,
     '',
-    '--- 1. WHY THIS IS NOT A MINECRAFT 2D HOLLOW SKIN ---',
-    'Standard Minecraft skins only unwrap the 6 outer faces of hollow boxes, losing all',
-    'internal 3D anatomy. For Hyperbuild 4D and 4D Miner, characters are solid 4D/3D',
-    'volumetric entities with real internal organs inside the skull, ribcage, and abdomen.',
-    'When a character rotates across the 4th dimension (W-axis) or takes penetrating',
-    'damage, the engine samples the W2 Internal Organ layer directly from this PNG sheet.',
+    '--- 1. HYPERBUILD 4D (.HB) PROPORTIONAL VOXEL & JOINT ARCHITECTURE ---',
+    'Unlike hollow 2D surface skins, Hyperbuild 4D (.hb) characters store the exact',
+    'Head Size, proportional body segment dimensions, every voxel XYZ coordinate,',
+    'RGBA color, anatomical partId, and the exact skeletal joint (`followJoint`) that',
+    'each body part and internal 3D organ follows.',
     '',
-    '--- 2. THE 11 OUTER ARTICULATED BODY SEGMENTS (PARTS 1..11) ---',
+    '--- 2. THE 11 OUTER ARTICULATED BODY SEGMENTS & JOINT BINDINGS (PARTS 1..11) ---',
     ...BODY_PART_SPECS.slice(1, 12).map(
-      (p) => `Part ${p.id}: ${p.name} | Bounds: [${p.bounds.join(', ')}] | Tissue: ${p.tissue}`
+      (p) => `Part ${p.id}: ${p.name} | Follows Joint: ${p.followJoint} | Bounds: [${p.bounds.join(', ')}]`
     ),
     '',
-    '--- 3. THE 9 VOLUMETRIC 3D INTERNAL ORGANS INSIDE THE CHARACTER (PARTS 12..20) ---',
+    '--- 3. THE 9 VOLUMETRIC 3D INTERNAL ORGANS & JOINT BINDINGS (PARTS 12..20) ---',
     ...BODY_PART_SPECS.slice(12, 21).map(
       (p) =>
-        `Part ${p.id}: ${p.name} | Inside Part ${p.parentPart} | Bounds: [${p.bounds.join(', ')}] | Crit Mult: ${p.damageMult}x`
+        `Part ${p.id}: ${p.name} | Inside Part ${p.parentPart} | Follows Joint: ${p.followJoint} | Bounds: [${p.bounds.join(', ')}]`
     ),
     '',
-    '--- 4. THE 9 ARTICULATED SKELETAL JOINTS ---',
+    '--- 4. THE 10 ARTICULATED SKELETAL JOINTS ---',
     ...CHAR_JOINTS.map(
       (j, idx) =>
         `${idx + 1}. ${j.name} (${j.id}) -> Pivot: (${j.pos.join(', ')}) | Parent Part ${j.parentPart} -> Child Part ${j.childPart}`
     ),
-    '',
-    '--- 5. HYPERBUILD 4D ENGINE RECONSTRUCTION STEPS ---',
-    '1. Load the 256x256 4D Miner PNG sheet into a RGBA8 texture buffer.',
-    '2. Sample Quadrant W1 (128,0) for outer shell voxels (Parts 1..11) and Quadrant W2',
-    '   (0,128) + Quadrant W3 (128,128) for internal organ volumes (Parts 12..20).',
-    '3. Bind each organ mesh to its parent body cavity (Head=1, Upper Torso=2, Lower Torso=3)',
-    '   so skeletal joint rotations transform both the outer shell and internal organs together.',
     '================================================================================',
   ].join('\n');
 }
 
-// ==================== 3D MATH & MATRIX HELPERS ====================
+// ==================== 3D MATRIX MATH (COLUMN-MAJOR FOR WEBGL) ====================
 function mat4Identity() {
-  return new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+  const out = new Float32Array(16);
+  out[0] = 1; out[5] = 1; out[10] = 1; out[15] = 1;
+  return out;
 }
 
 function mat4Perspective(fovRad, aspect, near, far) {
@@ -1405,9 +1759,15 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     initEngine,
     initCharacterTemplate,
     populateInternalOrgans,
+    computeBodyProportionsFromHead,
+    syncProportionalRigToHeadSize,
+    getJointForPart,
+    generateHyperbuildHBObject,
+    serializeHBFile,
+    deserializeHBFile,
     updateCulling,
     raycastVoxelDDA,
-    build4DMinerAtlasPixels,
+    buildHyperbuildAtlasPixels,
     generateHyperbuild4DRigJSON,
     generateHyperbuild4DSpecText,
     serializeHT3DBuffer,
@@ -1426,7 +1786,6 @@ function initBrowserApp() {
     preserveDrawingBuffer: true,
   });
 
-  // Compile WebGL Shader Program (supports vertex position + RGBA color + organ pulse flag)
   const vsSource = `
     attribute vec3 aPos;
     attribute vec4 aColor;
@@ -1474,7 +1833,6 @@ function initBrowserApp() {
     dynamicBuf = gl.createBuffer();
   }
 
-  // Pre-allocated dynamic arrays for rebuilding mesh in < 2ms
   let scratchOpaque = new Float32Array(600000 * 7);
   let scratchTrans = new Float32Array(300000 * 7);
   let scratchEdges = new Float32Array(500000 * 7);
@@ -1496,11 +1854,9 @@ function initBrowserApp() {
       if (isTrans) {
         if (tPtr + 42 >= scratchTrans.length) scratchTrans = ensureCapacity(scratchTrans, tPtr + 84000);
         const arr = scratchTrans;
-        // Tri 1: 0, 1, 2
         arr[tPtr++] = x0; arr[tPtr++] = y0; arr[tPtr++] = z0; arr[tPtr++] = r; arr[tPtr++] = g; arr[tPtr++] = b; arr[tPtr++] = a;
         arr[tPtr++] = x1; arr[tPtr++] = y1; arr[tPtr++] = z1; arr[tPtr++] = r; arr[tPtr++] = g; arr[tPtr++] = b; arr[tPtr++] = a;
         arr[tPtr++] = x2; arr[tPtr++] = y2; arr[tPtr++] = z2; arr[tPtr++] = r; arr[tPtr++] = g; arr[tPtr++] = b; arr[tPtr++] = a;
-        // Tri 2: 0, 2, 3
         arr[tPtr++] = x0; arr[tPtr++] = y0; arr[tPtr++] = z0; arr[tPtr++] = r; arr[tPtr++] = g; arr[tPtr++] = b; arr[tPtr++] = a;
         arr[tPtr++] = x2; arr[tPtr++] = y2; arr[tPtr++] = z2; arr[tPtr++] = r; arr[tPtr++] = g; arr[tPtr++] = b; arr[tPtr++] = a;
         arr[tPtr++] = x3; arr[tPtr++] = y3; arr[tPtr++] = z3; arr[tPtr++] = r; arr[tPtr++] = g; arr[tPtr++] = b; arr[tPtr++] = a;
@@ -1540,7 +1896,6 @@ function initBrowserApp() {
           const bb = color[c4 + 2] / 255;
           let ba = color[c4 + 3] / 255;
 
-          // Air/Inv collider voxel (alpha == 0): draw red wireframe outline
           if (color[c4 + 3] === 0) {
             if (ePtr + 56 < scratchEdges.length) {
               const ea = scratchEdges;
@@ -1561,27 +1916,27 @@ function initBrowserApp() {
           const sRgt = smoothShading ? 0.85 : 1.0;
           const sLft = smoothShading ? 0.69 : 1.0;
 
-          if (m & 4) { // +Y Top
+          if (m & 4) {
             pushQuad(isTrans, x, y + 1, z, x, y + 1, z + 1, x + 1, y + 1, z + 1, x + 1, y + 1, z,
               Math.min(1, br * sTop), Math.min(1, bg * sTop), Math.min(1, bb * sTop), ba);
           }
-          if (m & 8) { // -Y Bottom
+          if (m & 8) {
             pushQuad(isTrans, x, y, z, x + 1, y, z, x + 1, y, z + 1, x, y, z + 1,
               br * sBot, bg * sBot, bb * sBot, ba);
           }
-          if (m & 16) { // +Z Front
+          if (m & 16) {
             pushQuad(isTrans, x, y, z + 1, x + 1, y, z + 1, x + 1, y + 1, z + 1, x, y + 1, z + 1,
               br * sFrt, bg * sFrt, bb * sFrt, ba);
           }
-          if (m & 32) { // -Z Back
+          if (m & 32) {
             pushQuad(isTrans, x + 1, y, z, x, y, z, x, y + 1, z, x + 1, y + 1, z,
               br * sBck, bg * sBck, bb * sBck, ba);
           }
-          if (m & 1) { // +X Right
+          if (m & 1) {
             pushQuad(isTrans, x + 1, y, z + 1, x + 1, y, z, x + 1, y + 1, z, x + 1, y + 1, z + 1,
               br * sRgt, bg * sRgt, bb * sRgt, ba);
           }
-          if (m & 2) { // -X Left
+          if (m & 2) {
             pushQuad(isTrans, x, y, z, x, y, z + 1, x, y + 1, z + 1, x, y + 1, z,
               br * sLft, bg * sLft, bb * sLft, ba);
           }
@@ -1618,17 +1973,14 @@ function initBrowserApp() {
   }
 
   function pushWireBox(arr, minX, minY, minZ, maxX, maxY, maxZ, r, g, b, a) {
-    // Bottom 4
     pushLineSeg(arr, minX, minY, minZ, maxX, minY, minZ, r, g, b, a);
     pushLineSeg(arr, maxX, minY, minZ, maxX, minY, maxZ, r, g, b, a);
     pushLineSeg(arr, maxX, minY, maxZ, minX, minY, maxZ, r, g, b, a);
     pushLineSeg(arr, minX, minY, maxZ, minX, minY, minZ, r, g, b, a);
-    // Top 4
     pushLineSeg(arr, minX, maxY, minZ, maxX, maxY, minZ, r, g, b, a);
     pushLineSeg(arr, maxX, maxY, minZ, maxX, maxY, maxZ, r, g, b, a);
     pushLineSeg(arr, maxX, maxY, maxZ, minX, maxY, maxZ, r, g, b, a);
     pushLineSeg(arr, minX, maxY, maxZ, minX, maxY, minZ, r, g, b, a);
-    // Pillars 4
     pushLineSeg(arr, minX, minY, minZ, minX, maxY, minZ, r, g, b, a);
     pushLineSeg(arr, maxX, minY, minZ, maxX, maxY, minZ, r, g, b, a);
     pushLineSeg(arr, maxX, minY, maxZ, maxX, maxY, maxZ, r, g, b, a);
@@ -1673,6 +2025,48 @@ function initBrowserApp() {
     crosshairEl.classList.toggle('hidden', !(inEditor && engine.isMouseLocked));
   }
 
+  // ==================== PROPORTIONAL HEAD SIZE UI SYNC ====================
+  function updateHeadProportionUI(headVal) {
+    const H = Math.max(8, Math.min(28, Math.round(Number(headVal) || 16)));
+    engine.headSize = H;
+    const props = computeBodyProportionsFromHead(H);
+
+    const startupHeadIn = document.getElementById('input-head-size');
+    if (startupHeadIn && document.activeElement !== startupHeadIn) startupHeadIn.value = String(H);
+
+    const invHeadIn = document.getElementById('inv-head-size-input');
+    if (invHeadIn && document.activeElement !== invHeadIn) invHeadIn.value = String(H);
+
+    document.querySelectorAll('.btn-head-preset').forEach((btn) => {
+      btn.classList.toggle('active', Number(btn.dataset.hsize) === H);
+    });
+
+    const readout = document.getElementById('head-proportion-readout');
+    if (readout) {
+      readout.textContent = `Head ${H}×${H}×${H} → Proportional Body: Torso ${props.fullTorso.join('×')} · Limbs ${props.armUpper.join('×')} · Grid ${props.workspaceDimensions.join('×')}`;
+    }
+
+    const exportHeadLbl = document.getElementById('export-hb-head-label');
+    if (exportHeadLbl) {
+      exportHeadLbl.textContent = `${H}×${H}×${H}`;
+    }
+  }
+
+  document.querySelectorAll('.btn-head-preset').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const H = parseInt(btn.dataset.hsize, 10) || 16;
+      updateHeadProportionUI(H);
+    });
+  });
+
+  document.getElementById('input-head-size')?.addEventListener('input', (e) => {
+    updateHeadProportionUI(parseInt(e.target.value, 10) || 16);
+  });
+
+  document.getElementById('inv-head-size-input')?.addEventListener('input', (e) => {
+    updateHeadProportionUI(parseInt(e.target.value, 10) || 16);
+  });
+
   // ==================== AUTO-BACKUP SYSTEM (LOCALSTORAGE) ====================
   const BACKUP_STORAGE_KEY = 'hypertex3d_backups_v2';
   let backupList = [];
@@ -1692,7 +2086,6 @@ function initBrowserApp() {
 
   function saveBackupSnapshot(manual = false) {
     if (!engine.active || engine.activeVoxelCount === 0) return;
-    // Compress active voxels into compact RLE/sparse array so 30 backups easily fit in localStorage
     const sparse = [];
     for (let i = 0; i < engine.totalVoxels; i++) {
       if (engine.active[i]) {
@@ -1714,6 +2107,7 @@ function initBrowserApp() {
       sx: engine.gridX,
       sy: engine.gridY,
       sz: engine.gridZ,
+      headSize: engine.headSize || 16,
       isCharMode: engine.isCharacterMode,
       voxelCount: engine.activeVoxelCount,
       sparse,
@@ -1735,8 +2129,12 @@ function initBrowserApp() {
 
   function restoreBackupEntry(entry) {
     if (!entry) return;
+    if (entry.headSize) updateHeadProportionUI(entry.headSize);
     initEngine(entry.sx, entry.sy, entry.sz);
     engine.isCharacterMode = !!entry.isCharMode;
+    if (engine.isCharacterMode) {
+      syncProportionalRigToHeadSize(entry.headSize || Math.max(8, Math.round(entry.sx / 3)));
+    }
     const sp = entry.sparse || [];
     for (let i = 0; i < sp.length; i += 3) {
       const idx = sp[i];
@@ -1781,7 +2179,7 @@ function initBrowserApp() {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = `backup-item-btn ${idx === 0 ? 'latest' : ''}`;
-      const modeStr = b.isCharMode ? 'HYPERBUILD 4D CHAR + ORGANS' : 'CUSTOM XYZ';
+      const modeStr = b.isCharMode ? `HYPERBUILD 4D CHAR (Head ${b.headSize || 16}³)` : 'CUSTOM XYZ';
       btn.innerHTML = `
         <span>#${String(idx + 1).padStart(2, '0')} | ${b.timestamp} | Size: ${b.sx}×${b.sy}×${b.sz}</span>
         <span>${modeStr} (${b.voxelCount || 0} vox)</span>
@@ -1800,7 +2198,12 @@ function initBrowserApp() {
     const targetLabel = document.getElementById('active-paint-part-label');
     if (targetLabel) {
       const activeId = engine.paintTargetPart || engine.activePartFilter;
-      targetLabel.textContent = activeId > 0 ? BODY_PART_SPECS[activeId].name : 'Auto / Surface';
+      if (activeId > 0 && BODY_PART_SPECS[activeId]) {
+        const sp = BODY_PART_SPECS[activeId];
+        targetLabel.textContent = `${sp.name} → [${sp.followJoint}]`;
+      } else {
+        targetLabel.textContent = `Auto / Surface (Head ${engine.headSize}³)`;
+      }
     }
 
     for (let i = 1; i <= NUM_BODY_PARTS; i++) {
@@ -1818,9 +2221,10 @@ function initBrowserApp() {
       const soloBtn = document.createElement('button');
       soloBtn.type = 'button';
       soloBtn.className = `btn-part-solo ${isOrgan ? 'organ-row' : ''} ${isSolo ? 'solo-active' : ''} ${isHid ? 'part-muted' : ''}`;
+      soloBtn.title = `Follows Joint: ${spec.followJoint}`;
       soloBtn.innerHTML = `
         <span class="part-swatch-dot" style="background:${spec.color}"></span>
-        <span>${spec.name}</span>
+        <span>${spec.name} <small style="opacity:0.7">[${spec.followJoint}]</small></span>
       `;
       soloBtn.addEventListener('click', () => {
         if (engine.activePartFilter === i) {
@@ -1860,7 +2264,6 @@ function initBrowserApp() {
     }
   }
 
-  // Draggable Character Panel logic
   const charHeader = document.getElementById('char-panel-header');
   let isDraggingPanel = false;
   let panelDragOff = [0, 0];
@@ -1894,7 +2297,7 @@ function initBrowserApp() {
     const btn = document.getElementById('btn-collapse-char-panel');
     if (body) {
       const hidden = body.classList.toggle('hidden');
-      if (btn) btn.textContent = hidden ? '▴' : '▾';
+      if (btn) btn.textContent = hidden ? '+' : '-';
     }
   });
 
@@ -1918,7 +2321,6 @@ function initBrowserApp() {
 
   document.getElementById('btn-peel-outer-skin')?.addEventListener('click', () => {
     engine.activePartFilter = 0;
-    // Check if outer skin is already hidden
     let anyOuterVisible = false;
     for (let i = 1; i <= 11; i++) {
       if (!engine.partHidden[i]) anyOuterVisible = true;
@@ -1938,7 +2340,7 @@ function initBrowserApp() {
     engine.showJointsOverlay = !engine.showJointsOverlay;
     const btn = e.currentTarget;
     btn.classList.toggle('active', engine.showJointsOverlay);
-    btn.textContent = engine.showJointsOverlay ? '9 JOINTS RIG: VISIBLE' : '9 JOINTS RIG: HIDDEN';
+    btn.textContent = engine.showJointsOverlay ? '10 JOINTS RIG: VISIBLE' : '10 JOINTS RIG: HIDDEN';
   });
 
   document.getElementById('btn-toggle-organ-pulse')?.addEventListener('click', (e) => {
@@ -2107,7 +2509,6 @@ function initBrowserApp() {
     const sy = parseInt(inputYEl?.value, 10) || 32;
     const sz = parseInt(inputZEl?.value, 10) || 32;
     initEngine(sx, sy, sz);
-    // Seed a starter 4D hyper-crystal platform in the center so the workspace is immediately interactive
     const cx = Math.floor(engine.gridX / 2);
     const cz = Math.floor(engine.gridZ / 2);
     fillBoxPart(Math.max(0, cx - 4), 0, Math.max(0, cz - 4), Math.min(engine.gridX - 1, cx + 3), 1, Math.min(engine.gridZ - 1, cz + 3), 0, [0, 180, 216, 255], 0, 6);
@@ -2122,18 +2523,24 @@ function initBrowserApp() {
   }
 
   function startCharacterStudio() {
-    initCharacterTemplate();
-    engine.cameraPos = [23.0, 34.0, 82.0];
+    const H = parseInt(document.getElementById('input-head-size')?.value, 10) || engine.headSize || 16;
+    updateHeadProportionUI(H);
+    initCharacterTemplate(H);
+    const s = H / 16.0;
+    engine.cameraPos = [24.0 * s, 34.0 * s, 96.0 * s];
     engine.cameraAngle = [-Math.PI / 2, -0.02];
     engine.appState = STATE_EDITOR;
     syncAppStateDOM();
     renderCharacterPartList();
     renderHotbarDOM();
-    setStatus('Hyperbuild 4D Character + 9 Internal 3D Organs Loaded!');
+    setStatus(`Hyperbuild 4D Character (Head ${H}×${H}×${H}) + Proportional Body & 9 Internal Organs Loaded!`);
   }
 
   document.getElementById('btn-confirm-xyz')?.addEventListener('click', startCustomXYZWorkspace);
   document.getElementById('btn-design-character')?.addEventListener('click', startCharacterStudio);
+  document.getElementById('btn-startup-import-hb')?.addEventListener('click', () => {
+    document.getElementById('load-hb-input')?.click();
+  });
   document.getElementById('btn-startup-backup')?.addEventListener('click', () => {
     engine.prevStateBeforeBackup = STATE_STARTUP;
     engine.appState = STATE_BACKUP_LIST;
@@ -2160,8 +2567,13 @@ function initBrowserApp() {
     btn.addEventListener('click', () => {
       const act = btn.dataset.action;
       fileMenuDropdown.classList.add('hidden');
-      if (act === 'save-project') {
-        downloadHT3DFile('project.ht3d');
+      if (act === 'export-hb') {
+        engine.exportFormat = 'hb-structure';
+        openExportModal();
+      } else if (act === 'import-hb') {
+        document.getElementById('load-hb-input')?.click();
+      } else if (act === 'save-project') {
+        downloadHBFile('hyperbuild_4d_character.hb');
       } else if (act === 'save-as') {
         openModal('saveas-popup');
       } else if (act === 'export-png') {
@@ -2180,6 +2592,23 @@ function initBrowserApp() {
         syncAppStateDOM();
       }
     });
+  });
+
+  document.getElementById('btn-quick-export-hb')?.addEventListener('click', () => {
+    engine.exportFormat = 'hb-structure';
+    openExportModal();
+  });
+
+  document.getElementById('btn-quick-import-hb')?.addEventListener('click', () => {
+    document.getElementById('load-hb-input')?.click();
+  });
+
+  document.getElementById('btn-import-hb-file-screen')?.addEventListener('click', () => {
+    document.getElementById('load-hb-input')?.click();
+  });
+
+  document.getElementById('btn-sidebar-load-hb')?.addEventListener('click', () => {
+    document.getElementById('load-hb-input')?.click();
   });
 
   document.getElementById('btn-open-backup')?.addEventListener('click', () => {
@@ -2273,7 +2702,6 @@ function initBrowserApp() {
     });
   });
 
-  // Tools Popup
   document.querySelectorAll('.btn-tool-item').forEach((btn) => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.btn-tool-item').forEach((b) => b.classList.remove('active'));
@@ -2296,7 +2724,6 @@ function initBrowserApp() {
   const SWATCH_PRESETS = [
     '#E63946', '#FB5607', '#FFBE0B', '#06D6A0', '#118AB2', '#3A86FF', '#8338EC', '#FF006E',
     '#EBB491', '#C38764', '#6E462D', '#412819', '#F8F9FA', '#ADB5BD', '#495057', '#14181E',
-    // 8 Hyperbuild 4D Organ Tissue Swatches
     '#F06595', '#E03131', '#FF8787', '#F783AC', '#9C36B5', '#FFA94D', '#00F5D4', '#4DABF7',
   ];
 
@@ -2541,15 +2968,19 @@ function initBrowserApp() {
   });
 
   document.getElementById('btn-regen-char-full')?.addEventListener('click', () => {
-    initCharacterTemplate();
+    const H = parseInt(document.getElementById('inv-head-size-input')?.value, 10) || engine.headSize || 16;
+    updateHeadProportionUI(H);
+    initCharacterTemplate(H);
+    const s = H / 16.0;
+    engine.cameraPos = [23.0 * s, 34.0 * s, 82.0 * s];
     closeAllModals();
     renderCharacterPartList();
-    setStatus('Rebuilt Full Hyperbuild 4D Character + All 9 Internal Organs!');
+    setStatus(`Rebuilt Proportional Hyperbuild 4D Character (Head ${H}×${H}×${H}) + All 9 Internal Organs!`);
   });
 
   document.getElementById('btn-regen-organs-only')?.addEventListener('click', () => {
     pushUndoSnapshot();
-    populateInternalOrgans();
+    populateInternalOrgans(engine.headSize);
     updateCulling();
     closeAllModals();
     renderCharacterPartList();
@@ -2617,32 +3048,52 @@ function initBrowserApp() {
     syncAppStateDOM();
   });
 
-  // ==================== EXPORT 4D MINER SHEET & RIG MODAL ====================
+  // ==================== EXPORT HYPERBUILD 4D (.HB) & VOLUMETRIC SHEET MODAL ====================
+  function getCleanExportBaseName() {
+    const inp = document.getElementById('export-filename-input');
+    return (inp?.value || 'hyperbuild_4d_character').replace(/\.(hb|png|json|txt|ht3d)$/i, '').trim() || 'hyperbuild_4d_character';
+  }
+
   function renderExportPreviewCanvas() {
     const previewCanvas = document.getElementById('export-preview-canvas');
     const dimsLabel = document.getElementById('export-sheet-dims-label');
+    const hbSnippetEl = document.getElementById('export-hb-live-snippet');
+    const headLbl = document.getElementById('export-hb-head-label');
     if (!previewCanvas) return;
 
-    const { width, height, pixels } = build4DMinerAtlasPixels(engine.exportFormat);
+    const H = engine.headSize || 16;
+    if (headLbl) headLbl.textContent = `${H}×${H}×${H}`;
+
+    const { width, height, pixels } = buildHyperbuildAtlasPixels(engine.exportFormat);
     previewCanvas.width = width;
     previewCanvas.height = height;
     const ctx = previewCanvas.getContext('2d');
     const imgData = new ImageData(pixels, width, height);
     ctx.putImageData(imgData, 0, 0);
 
+    const base = getCleanExportBaseName();
+    if (hbSnippetEl) {
+      hbSnippetEl.textContent = buildHBPreviewSnippet(base);
+    }
+
     if (dimsLabel) {
       const modeTitle =
-        engine.exportFormat === '4dminer-volumetric'
-          ? '4D MINER VOLUMETRIC ORGAN ATLAS'
+        engine.exportFormat === 'hb-structure'
+          ? `HYPERBUILD 4D STRUCTURE (.hb) — HEAD ${H}×${H}×${H}`
+          : engine.exportFormat === 'hyperbuild-volumetric'
+          ? 'HYPERBUILD 4D VOLUMETRIC ORGAN ATLAS'
           : engine.exportFormat === 'anatomical-20parts'
           ? '20-PART ANATOMICAL SLICE SHEET'
           : 'RAW 3D Z-SLICE STRIP';
-      dimsLabel.textContent = `${modeTitle} (${width}×${height} PNG)`;
+      dimsLabel.textContent = `${modeTitle} (${width}×${height} PREVIEW)`;
     }
   }
 
   function openExportModal() {
     openModal('export-popup');
+    document.querySelectorAll('.btn-export-mode').forEach((b) => {
+      b.classList.toggle('active', b.dataset.emode === engine.exportFormat);
+    });
     renderExportPreviewCanvas();
   }
 
@@ -2650,9 +3101,14 @@ function initBrowserApp() {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.btn-export-mode').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
-      engine.exportFormat = btn.dataset.emode || '4dminer-volumetric';
+      engine.exportFormat = btn.dataset.emode || 'hb-structure';
       renderExportPreviewCanvas();
     });
+  });
+
+  document.getElementById('export-filename-input')?.addEventListener('input', () => {
+    const hbSnippetEl = document.getElementById('export-hb-live-snippet');
+    if (hbSnippetEl) hbSnippetEl.textContent = buildHBPreviewSnippet(getCleanExportBaseName());
   });
 
   function triggerBlobDownload(blob, filename) {
@@ -2664,6 +3120,14 @@ function initBrowserApp() {
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  function downloadHBFile(filenameOrBase) {
+    const base = filenameOrBase.replace(/\.hb$/i, '').trim() || 'hyperbuild_4d_character';
+    const hbContent = serializeHBFile(base);
+    triggerBlobDownload(new Blob([hbContent], { type: 'application/json' }), `${base}.hb`);
+    saveBackupSnapshot(false);
+    setStatus(`Exported Hyperbuild 4D (.hb) File: ${base}.hb (Head ${engine.headSize}³ | ${engine.activeVoxelCount} Voxels)`);
   }
 
   function downloadExportPNG(baseName) {
@@ -2684,24 +3148,26 @@ function initBrowserApp() {
     triggerBlobDownload(new Blob([txtStr], { type: 'text/plain' }), `${baseName}_hyperbuild_spec.txt`);
   }
 
-  function getCleanExportBaseName() {
-    const inp = document.getElementById('export-filename-input');
-    return (inp?.value || 'hyperbuild_4d_character').replace(/\.(png|json|txt|ht3d)$/i, '').trim() || 'hyperbuild_4d_character';
-  }
+  document.getElementById('btn-download-hb-primary')?.addEventListener('click', () => {
+    const base = getCleanExportBaseName();
+    downloadHBFile(base);
+    closeAllModals();
+  });
 
   document.getElementById('btn-download-all-export')?.addEventListener('click', () => {
     const base = getCleanExportBaseName();
-    downloadExportPNG(base);
-    setTimeout(() => downloadExportJSON(base), 120);
-    setTimeout(() => downloadExportTXT(base), 240);
+    downloadHBFile(base);
+    setTimeout(() => downloadExportPNG(base), 100);
+    setTimeout(() => downloadExportJSON(base), 220);
+    setTimeout(() => downloadExportTXT(base), 340);
     closeAllModals();
-    setStatus(`Exported 4D Miner Volumetric PNG + Organ Rig JSON + Spec: ${base}`);
+    setStatus(`Exported Hyperbuild 4D .hb + Volumetric PNG + Organ Rig JSON + Spec: ${base}`);
   });
 
   document.getElementById('btn-download-png-only')?.addEventListener('click', () => {
     const base = getCleanExportBaseName();
     downloadExportPNG(base);
-    setStatus(`Exported 4D Miner PNG Sheet: ${base}.png`);
+    setStatus(`Exported Hyperbuild 4D PNG Sheet: ${base}.png`);
   });
 
   document.getElementById('btn-download-json-only')?.addEventListener('click', () => {
@@ -2716,8 +3182,12 @@ function initBrowserApp() {
     setStatus(`Exported Hyperbuild 4D Engine Spec: ${base}_hyperbuild_spec.txt`);
   });
 
-  // ==================== SAVE / LOAD .HT3D PROJECT ====================
+  // ==================== SAVE / LOAD .HB & .HT3D PROJECT FILES ====================
   function downloadHT3DFile(filename) {
+    if (filename.toLowerCase().endsWith('.hb')) {
+      downloadHBFile(filename);
+      return;
+    }
     const cleanName = filename.endsWith('.ht3d') ? filename : `${filename}.ht3d`;
     const buf = serializeHT3DBuffer();
     triggerBlobDownload(new Blob([buf], { type: 'application/octet-stream' }), cleanName);
@@ -2727,26 +3197,75 @@ function initBrowserApp() {
 
   document.getElementById('btn-saveas-confirm')?.addEventListener('click', () => {
     const inp = document.getElementById('saveas-filename-input');
-    downloadHT3DFile(inp?.value || 'hyperbuild_4d_project.ht3d');
+    const fname = (inp?.value || 'hyperbuild_4d_character.hb').trim();
+    if (fname.toLowerCase().endsWith('.ht3d')) {
+      downloadHT3DFile(fname);
+    } else {
+      downloadHBFile(fname);
+    }
     closeAllModals();
+  });
+
+  function loadHBFileIntoStudio(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (deserializeHBFile(reader.result)) {
+        updateHeadProportionUI(engine.headSize);
+        const s = (engine.headSize || 16) / 16.0;
+        engine.cameraPos = [engine.gridX / 2, engine.gridY * 0.48, Math.max(engine.gridX, engine.gridZ) * 1.45 * Math.max(1, s * 0.8)];
+        engine.cameraAngle = [-Math.PI / 2, -0.02];
+        engine.appState = STATE_EDITOR;
+        closeAllModals();
+        syncAppStateDOM();
+        renderCharacterPartList();
+        renderHotbarDOM();
+        setStatus(
+          `Imported Hyperbuild 4D (.hb): ${file.name} — Head ${engine.headSize}×${engine.headSize}×${engine.headSize} | Grid ${engine.gridX}×${engine.gridY}×${engine.gridZ} | ${engine.activeVoxelCount} Voxels`
+        );
+      } else {
+        setStatus(`Failed to parse .hb file: ${file.name}`);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  document.getElementById('load-hb-input')?.addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    if (file) loadHBFileIntoStudio(file);
+    e.target.value = '';
   });
 
   document.getElementById('load-ht3d-input')?.addEventListener('change', (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.name.toLowerCase().endsWith('.hb') || file.name.toLowerCase().endsWith('.json')) {
+      loadHBFileIntoStudio(file);
+      e.target.value = '';
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       if (deserializeHT3DBuffer(reader.result)) {
+        updateHeadProportionUI(engine.headSize);
         engine.appState = STATE_EDITOR;
         syncAppStateDOM();
         renderCharacterPartList();
         renderHotbarDOM();
         setStatus(`Loaded Project: ${file.name} (${engine.gridX}×${engine.gridY}×${engine.gridZ})`);
+      } else if (deserializeHBFile(reader.result)) {
+        updateHeadProportionUI(engine.headSize);
+        engine.appState = STATE_EDITOR;
+        syncAppStateDOM();
+        renderCharacterPartList();
+        renderHotbarDOM();
+        setStatus(`Imported Hyperbuild 4D (.hb): ${file.name}`);
       } else {
-        setStatus('Invalid .ht3d file format');
+        setStatus('Invalid .ht3d / .hb file format');
       }
     };
     reader.readAsArrayBuffer(file);
+    e.target.value = '';
   });
 
   // ==================== 2D PNG CROP & IMPORT SCREEN ====================
@@ -2763,8 +3282,7 @@ function initBrowserApp() {
   let cropDragOrigin = [0, 0];
 
   function generateSampleOrganSpriteCanvas() {
-    // Default built-in 64x64 4D Organ Cross-Section Sprite so Import Screen works out of the box
-    const { width, height, pixels } = build4DMinerAtlasPixels('4dminer-volumetric');
+    const { width, height, pixels } = buildHyperbuildAtlasPixels('hyperbuild-volumetric');
     importedOffscreenCanvas.width = width;
     importedOffscreenCanvas.height = height;
     importedOffscreenCanvas.getContext('2d').putImageData(new ImageData(pixels, width, height), 0, 0);
@@ -2790,7 +3308,6 @@ function initBrowserApp() {
     ctx.clearRect(0, 0, iw, ih);
     ctx.drawImage(importedOffscreenCanvas, 0, 0);
 
-    // Draw red selection rectangle
     ctx.fillStyle = 'rgba(230, 57, 70, 0.28)';
     ctx.fillRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
     ctx.strokeStyle = '#ff2a4b';
@@ -2919,16 +3436,20 @@ function initBrowserApp() {
     syncAppStateDOM();
   });
 
-  // Drag & Drop .png or .ht3d directly onto window
+  // Drag & Drop .hb, .ht3d, or .png directly onto window
   window.addEventListener('dragover', (e) => e.preventDefault());
   window.addEventListener('drop', (e) => {
     e.preventDefault();
     const file = e.dataTransfer?.files?.[0];
     if (!file) return;
-    if (file.name.toLowerCase().endsWith('.ht3d')) {
+    const lowName = file.name.toLowerCase();
+    if (lowName.endsWith('.hb') || lowName.endsWith('.json')) {
+      loadHBFileIntoStudio(file);
+    } else if (lowName.endsWith('.ht3d')) {
       const reader = new FileReader();
       reader.onload = () => {
         if (deserializeHT3DBuffer(reader.result)) {
+          updateHeadProportionUI(engine.headSize);
           engine.appState = STATE_EDITOR;
           syncAppStateDOM();
           renderCharacterPartList();
@@ -2971,7 +3492,6 @@ function initBrowserApp() {
       return;
     }
 
-    // Determine if this click is Erase or Place/Tool
     const isEraseAction =
       engine.currentTool === TOOL_ERASER ||
       (e.button === 0 && e.shiftKey && !engine.isMouseLocked) ||
@@ -3128,7 +3648,7 @@ function initBrowserApp() {
       return;
     }
 
-    if (engine.appState === STATE_STARTUP && e.key === 'Enter') {
+    if (engine.appState === STATE_STARTUP && e.key === 'Enter' && !isInputFocused) {
       startCustomXYZWorkspace();
       return;
     }
@@ -3154,7 +3674,7 @@ function initBrowserApp() {
     }
     if ((e.ctrlKey || e.metaKey) && e.code === 'KeyS') {
       e.preventDefault();
-      downloadHT3DFile('project.ht3d');
+      downloadHBFile('hyperbuild_4d_character.hb');
       return;
     }
     if ((e.ctrlKey || e.metaKey) && e.code === 'KeyV' && engine.clipboard.length > 0) {
@@ -3233,13 +3753,12 @@ function initBrowserApp() {
   // ==================== MAIN RENDER & UPDATE LOOP ====================
   loadBackupsFromStorage();
 
-  // Support ?autostart=1 to jump directly into the Hyperbuild 4D Character + Internal Organs Studio
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('autostart') === '1') {
     startCharacterStudio();
   } else {
-    // Pre-initialize the 4D character in the background so the 3D scene behind overlays is already populated
-    initCharacterTemplate();
+    initCharacterTemplate(16);
+    updateHeadProportionUI(16);
     syncAppStateDOM();
   }
 
@@ -3268,7 +3787,6 @@ function initBrowserApp() {
       if (statusTimer <= 0 && statusToast) statusToast.textContent = '';
     }
 
-    // Auto-Backup every 5 seconds in Editor
     if (engine.appState === STATE_EDITOR && now - lastBackupCheck >= 5000) {
       saveBackupSnapshot(false);
       lastBackupCheck = now;
@@ -3276,7 +3794,6 @@ function initBrowserApp() {
 
     if (engine.appState !== STATE_EDITOR) return;
 
-    // Resize canvas if needed
     const dpr = navigator.webdriver || /HeadlessChrome/i.test(navigator.userAgent) ? 1 : Math.min(window.devicePixelRatio || 1, 2);
     const cw = Math.floor(window.innerWidth * dpr);
     const ch = Math.floor(window.innerHeight * dpr);
@@ -3285,7 +3802,6 @@ function initBrowserApp() {
       canvas.height = ch;
     }
 
-    // Fly movement (WASD + Space + Shift)
     const anyModalOpen = Array.from(document.querySelectorAll('.modal-backdrop')).some((m) => !m.classList.contains('hidden'));
     if (!anyModalOpen) {
       const [yaw] = engine.cameraAngle;
@@ -3313,7 +3829,6 @@ function initBrowserApp() {
       if (keysDown['ShiftLeft'] && engine.isMouseLocked) engine.cameraPos[1] -= speed;
     }
 
-    // Build View-Projection Matrix
     const fwd = getLookForward();
     const target = [
       engine.cameraPos[0] + fwd[0],
@@ -3325,7 +3840,6 @@ function initBrowserApp() {
     const viewMat = mat4LookAt(engine.cameraPos, target, [0, 1, 0]);
     const vpMat = mat4Multiply(projMat, viewMat);
 
-    // Compute ray from camera (center if pointer locked, mouseNDC if unlocked)
     let rayOrigin = [...engine.cameraPos];
     let rayDir = [...fwd];
     if (!engine.isMouseLocked) {
@@ -3340,7 +3854,6 @@ function initBrowserApp() {
 
     currentHoverVoxel = raycastVoxelDDA(rayOrigin, rayDir);
 
-    // Update top HUD coordinate readout
     const tx = currentHoverVoxel.hit ? currentHoverVoxel.hitX : currentHoverVoxel.placeX;
     const ty = currentHoverVoxel.hit ? currentHoverVoxel.hitY : currentHoverVoxel.placeY;
     const tz = currentHoverVoxel.hit ? currentHoverVoxel.hitZ : currentHoverVoxel.placeZ;
@@ -3349,11 +3862,11 @@ function initBrowserApp() {
     if (currentHoverVoxel.hit && engine.isCharacterMode) {
       const pid = engine.partId[getIndex(currentHoverVoxel.hitX, currentHoverVoxel.hitY, currentHoverVoxel.hitZ)];
       if (pid > 0 && BODY_PART_SPECS[pid]) {
-        hoveredPartStr = ` | Target: ${BODY_PART_SPECS[pid].name}`;
+        hoveredPartStr = ` | ${BODY_PART_SPECS[pid].name} [${BODY_PART_SPECS[pid].followJoint}]`;
       }
     }
     if (hudCoordsText) {
-      hudCoordsText.textContent = `XYZ: [${tx >= 0 ? tx : '-'}, ${ty >= 0 ? ty : '-'}, ${tz >= 0 ? tz : '-'}] (${engine.gridX}×${engine.gridY}×${engine.gridZ}) | Plane: ${hpNames[engine.hpState]} | Voxels: ${engine.activeVoxelCount}${hoveredPartStr}`;
+      hudCoordsText.textContent = `XYZ: [${tx >= 0 ? tx : '-'}, ${ty >= 0 ? ty : '-'}, ${tz >= 0 ? tz : '-'}] (${engine.gridX}×${engine.gridY}×${engine.gridZ} | Head ${engine.headSize}³) | ${hpNames[engine.hpState]} | Voxels: ${engine.activeVoxelCount}${hoveredPartStr}`;
     }
 
     if (!gl) return;
@@ -3365,7 +3878,6 @@ function initBrowserApp() {
     gl.useProgram(prog);
     gl.uniformMatrix4fv(uVPLoc, false, vpMat);
 
-    // 1. Opaque Voxel Pass
     gl.enable(gl.DEPTH_TEST);
     gl.depthMask(true);
     gl.disable(gl.BLEND);
@@ -3374,7 +3886,6 @@ function initBrowserApp() {
       gl.drawArrays(gl.TRIANGLES, 0, opaqueVertCount);
     }
 
-    // 2. Wireframe Edges Pass
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     if (engine.showWireframe && edgeVertCount > 0) {
@@ -3382,7 +3893,6 @@ function initBrowserApp() {
       gl.drawArrays(gl.LINES, 0, edgeVertCount);
     }
 
-    // 3. Translucent X-Ray Shell & Glass Voxels Pass
     if (transVertCount > 0) {
       gl.depthMask(false);
       bindInterleavedBuffer(transBuf);
@@ -3390,23 +3900,18 @@ function initBrowserApp() {
       gl.depthMask(true);
     }
 
-    // 4. Dynamic Scene Lines (Workspace Bounds, Floor Grid, Hyperplane Slice, Hover/Drag Box, Joints & Gizmo)
     const dynLines = [];
     const { gridX: gx, gridY: gy, gridZ: gz } = engine;
 
-    // Workspace bounding box
     pushWireBox(dynLines, 0, 0, 0, gx, gy, gz, 0.25, 0.65, 1.0, 0.28);
 
-    // Floor grid every 2 units
     for (let x = 0; x <= gx; x += 2) pushLineSeg(dynLines, x, 0, 0, x, 0, gz, 0.5, 0.58, 0.72, 0.22);
     for (let z = 0; z <= gz; z += 2) pushLineSeg(dynLines, 0, 0, z, gx, 0, z, 0.5, 0.58, 0.72, 0.22);
 
-    // Symmetry X center line when Mirror X is enabled
     if (engine.mirrorX) {
       pushWireBox(dynLines, gx / 2 - 0.02, 0, 0, gx / 2 + 0.02, gy, gz, 1.0, 0.3, 0.7, 0.45);
     }
 
-    // Hyperplane Slice Lines
     if (engine.hpState === 1) {
       for (let i = 0; i <= gx; i += 2) pushLineSeg(dynLines, i, engine.hpPos, 0, i, engine.hpPos, gz, 0.2, 0.95, 0.4, 0.65);
       for (let k = 0; k <= gz; k += 2) pushLineSeg(dynLines, 0, engine.hpPos, k, gx, engine.hpPos, k, 0.2, 0.95, 0.4, 0.65);
@@ -3416,7 +3921,6 @@ function initBrowserApp() {
       for (let i = 0; i <= gx; i += 2) pushLineSeg(dynLines, i, 0, engine.hpPos, i, gy, engine.hpPos, 0.25, 0.55, 1.0, 0.65);
     }
 
-    // Hover / Tool Drag Box
     if (!engine.isPasting) {
       if (isToolDragging) {
         const cx = currentHoverVoxel.hit ? currentHoverVoxel.hitX : currentHoverVoxel.placeX;
@@ -3440,7 +3944,6 @@ function initBrowserApp() {
         }
       }
     } else if (engine.clipboard.length > 0) {
-      // Paste bounding box & 3-axis Gizmo
       const [px, py, pz] = engine.pastePos;
       const [sx, sy, sz] = engine.clipSize;
       pushWireBox(dynLines, px, py, pz, px + sx, py + sy, pz + sz, 0.2, 1.0, 0.5, 0.95);
@@ -3469,7 +3972,6 @@ function initBrowserApp() {
       gl.drawArrays(gl.LINES, 0, dynLines.length / 7);
     }
 
-    // 5. 9 Skeletal Joints Overlay (Always visible on top via disabled depth test, matching main.c rlDisableDepthTest)
     if (engine.isCharacterMode && engine.showJointsOverlay) {
       const jointLines = [];
       for (const j of CHAR_JOINTS) {
@@ -3488,7 +3990,6 @@ function initBrowserApp() {
       gl.enable(gl.DEPTH_TEST);
     }
 
-    // Update 2D Screen-Space Joint Labels
     if (jointLabelsLayer) {
       if (engine.isCharacterMode && engine.showJointsOverlay && !anyModalOpen) {
         jointLabelsLayer.innerHTML = '';
@@ -3496,7 +3997,9 @@ function initBrowserApp() {
           const sp = projectWorldToScreen(j.pos[0], j.pos[1], j.pos[2], vpMat, window.innerWidth, window.innerHeight);
           if (sp && sp.x >= 0 && sp.x <= window.innerWidth && sp.y >= 46 && sp.y <= window.innerHeight - 60) {
             const tag = document.createElement('span');
-            tag.className = 'joint-tag';
+            const isLeft = j.id.startsWith('l_');
+            const isCenter = j.id === 'neck_joint' || j.id === 'waist_joint';
+            tag.className = `joint-tag${isLeft ? ' joint-tag-left' : isCenter ? ' joint-tag-top' : ''}`;
             tag.style.left = `${Math.round(sp.x)}px`;
             tag.style.top = `${Math.round(sp.y)}px`;
             tag.textContent = j.name;

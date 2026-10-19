@@ -6,12 +6,12 @@
     <title>HyperTex3D — Hyperbuild 4D Voxel &amp; Organ Studio</title>
     <meta
       name="description"
-      content="High-performance 3D/4D voxel character, internal organ anatomy, and 4D Miner volumetric texture sheet studio for Hyperbuild 4D."
+      content="High-performance 3D/4D voxel character, proportional skeletal joint rig, internal organ anatomy, and .hb structure studio for Hyperbuild 4D."
     />
     <meta property="og:title" content="HyperTex3D — Hyperbuild 4D Voxel &amp; Organ Studio" />
     <meta
       property="og:description"
-      content="High-performance 3D/4D voxel character, internal organ anatomy, and 4D Miner volumetric texture sheet studio for Hyperbuild 4D."
+      content="High-performance 3D/4D voxel character, proportional skeletal joint rig, internal organ anatomy, and .hb structure studio for Hyperbuild 4D."
     />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -42,11 +42,11 @@
           <div class="brand-row">
             <span class="engine-tag">HYPERBUILD 4D ENGINE</span>
             <span class="sep">·</span>
-            <span class="engine-sub">4D MINER VOLUMETRIC PIPELINE</span>
+            <span class="engine-sub">PROPORTIONAL .HB VOXEL &amp; JOINT RIG PIPELINE</span>
           </div>
-          <h1>HYPERTEX 3D — PRO VOXEL &amp; ORGAN STUDIO</h1>
+          <h1>HYPERTEX 3D — HYPERBUILD 4D STUDIO</h1>
           <p class="startup-subtitle">
-            Enter Workspace X, Y, Z Dimensions or Design a 4D Articulated Character with Volumetric Internal Organs
+            Enter Workspace X, Y, Z Dimensions or Design a Proportional Hyperbuild 4D Character (.hb)
           </p>
         </div>
 
@@ -118,19 +118,49 @@
           CONFIRM XYZ SIZE &amp; START EDITOR (ENTER)
         </button>
 
+        <div class="head-scale-box" role="group" aria-label="Hyperbuild 4D Character Head Size">
+          <div class="head-scale-top">
+            <label for="input-head-size" class="head-scale-label">CHARACTER HEAD SIZE (CUBE):</label>
+            <div class="head-scale-controls">
+              <button type="button" class="btn-head-preset" data-hsize="8">8×8×8</button>
+              <button type="button" class="btn-head-preset" data-hsize="12">12×12×12</button>
+              <button type="button" class="btn-head-preset active" data-hsize="16">16×16×16</button>
+              <button type="button" class="btn-head-preset" data-hsize="20">20×20×20</button>
+              <button type="button" class="btn-head-preset" data-hsize="24">24×24×24</button>
+              <input
+                id="input-head-size"
+                type="number"
+                min="8"
+                max="28"
+                step="2"
+                value="16"
+                aria-label="Character Head Size"
+              />
+            </div>
+          </div>
+          <p id="head-proportion-readout" class="head-scale-sub">
+            Head 16×16×16 → Proportional Body: Torso 16×24×8 · Limbs 8×24×8 · Grid 48×72×32
+          </p>
+        </div>
+
         <button type="button" id="btn-design-character" class="btn-primary-orange">
-          DESIGN HYPERBUILD 4D CHARACTER (11 Outer Parts + 9 Internal Organs | 9 Joints)
+          DESIGN HYPERBUILD 4D CHARACTER (11 Outer Parts + 9 Internal Organs | 10 Joints)
         </button>
         <p class="char-caption">
-          Includes hollow anatomical body shell (4 Arms, 4 Legs, 2 Torso, 16×16 Head) + 9 Volumetric 3D Internal Organs (Brain, Heart, Lungs, Ribcage/Spine, Stomach, Liver, Intestines, Optic Nerves &amp; 4D Hyper-Gland)
+          Body, limbs, 9 internal organs &amp; skeletal joints scale automatically with Head Size and bind to joints for .hb export/import
         </p>
 
-        <button type="button" id="btn-startup-backup" class="btn-primary-blue">
-          OPEN AUTO-BACKUP (Recover Crash - <span id="startup-backup-count">0</span> / 30 Saved)
-        </button>
+        <div class="startup-bottom-row">
+          <button type="button" id="btn-startup-import-hb" class="btn-primary-purple">
+            IMPORT .HB CHARACTER / STRUCTURE FILE
+          </button>
+          <button type="button" id="btn-startup-backup" class="btn-primary-blue">
+            AUTO-BACKUP (<span id="startup-backup-count">0</span> / 30 Saved)
+          </button>
+        </div>
 
         <p class="backup-caption">
-          Auto-Backup runs every 5 seconds automatically in browser storage. Supports .ht3d binary &amp; 4D Miner PNG sheets.
+          Auto-Backup runs every 5 seconds in browser storage. Supports Hyperbuild 4D (.hb), .ht3d binary &amp; volumetric PNG sheets.
         </p>
       </div>
     </section>
@@ -152,17 +182,18 @@
       </div>
     </section>
 
-    <!-- ==================== STATE 3: 2D PNG CROP & IMPORT SCREEN ==================== -->
-    <section id="import-2d-screen" class="screen-overlay hidden" aria-label="2D Texture Crop and Voxel Importer">
+    <!-- ==================== STATE 3: 2D PNG CROP & .HB IMPORT SCREEN ==================== -->
+    <section id="import-2d-screen" class="screen-overlay hidden" aria-label="Hyperbuild 4D .hb and 2D Texture Importer">
       <div class="import-2d-layout">
         <div class="import-canvas-area">
           <div class="import-header-bar">
             <div>
-              <h2>2D CROP &amp; SLICE IMPORTER (Drag mouse on image OR type values)</h2>
-              <p>Convert 2D PNG sprites or 4D Miner slice sheets directly into 3D Voxels</p>
+              <h2>HYPERBUILD 4D (.HB) &amp; 2D SLICE IMPORTER</h2>
+              <p>Import a Hyperbuild 4D (.hb) character/voxel file or crop 2D PNG slices directly into 3D Voxels</p>
             </div>
             <div class="import-header-btns">
-              <button type="button" id="btn-import-confirm" class="btn-hud btn-green">CONVERT TO 3D VOXELS (ENTER)</button>
+              <button type="button" id="btn-import-hb-file-screen" class="btn-hud btn-purple">IMPORT .HB FILE</button>
+              <button type="button" id="btn-import-confirm" class="btn-hud btn-green">CONVERT CROP TO 3D VOXELS (ENTER)</button>
               <button type="button" id="btn-import-cancel" class="btn-hud btn-maroon">CANCEL (ESC)</button>
             </div>
           </div>
@@ -171,7 +202,15 @@
           </div>
         </div>
         <aside class="import-sidebar">
-          <h3>CROP PROPERTIES</h3>
+          <h3>HYPERBUILD 4D (.HB) IMPORT</h3>
+          <p class="modal-sub">
+            Reads character head size, proportional body segments, XYZ voxel coordinates, colors, and joint bindings from a .hb file:
+          </p>
+          <button type="button" id="btn-sidebar-load-hb" class="btn-primary-purple" style="min-height:40px;font-size:12.5px;">
+            CHOOSE .HB FILE FROM DISK
+          </button>
+          <hr class="sidebar-divider" />
+          <h3>2D PNG CROP PROPERTIES</h3>
           <div class="crop-field">
             <label for="crop-x">X Pos:</label>
             <input id="crop-x" type="number" min="0" value="0" />
@@ -212,16 +251,24 @@
         <div class="dropdown-anchor">
           <button type="button" id="btn-file-menu" class="btn-hud" aria-expanded="false">FILE MENU</button>
           <div id="file-menu-dropdown" class="dropdown-menu hidden" role="menu">
+            <button type="button" role="menuitem" data-action="export-hb">Export Hyperbuild 4D (.hb)...</button>
+            <button type="button" role="menuitem" data-action="import-hb">Import Hyperbuild 4D (.hb)...</button>
             <button type="button" role="menuitem" data-action="save-project">Save Project (.ht3d)</button>
             <button type="button" role="menuitem" data-action="save-as">Save As (.ht3d)...</button>
-            <button type="button" role="menuitem" data-action="export-png">Export 4D Miner Sheet &amp; Organ Rig (.png)...</button>
-            <button type="button" role="menuitem" data-action="import-png">Import PNG Texture / Slice</button>
-            <button type="button" role="menuitem" data-action="load-project">Load Project (.ht3d)</button>
+            <button type="button" role="menuitem" data-action="export-png">Export Volumetric Sheet &amp; Rig (.png / .hb)...</button>
+            <button type="button" role="menuitem" data-action="import-png">Import .hb or 2D PNG Slice</button>
+            <button type="button" role="menuitem" data-action="load-project">Load Project (.ht3d / .hb)</button>
             <button type="button" role="menuitem" data-action="open-backups">Open Backup List</button>
-            <button type="button" role="menuitem" data-action="new-resize">New / Resize XYZ</button>
+            <button type="button" role="menuitem" data-action="new-resize">New / Resize XYZ &amp; Head</button>
           </div>
         </div>
 
+        <button type="button" id="btn-quick-export-hb" class="btn-hud btn-orange" title="Export Hyperbuild 4D (.hb) File">
+          EXPORT .HB
+        </button>
+        <button type="button" id="btn-quick-import-hb" class="btn-hud btn-purple" title="Import Hyperbuild 4D (.hb) File">
+          IMPORT .HB
+        </button>
         <button type="button" id="btn-open-backup" class="btn-hud btn-blue">OPEN BACKUP</button>
         <button type="button" id="btn-toggle-shading" class="btn-hud btn-green">SHADING: ON</button>
         <button type="button" id="btn-toggle-edges" class="btn-hud btn-slate">EDGES: ON</button>
@@ -300,7 +347,7 @@
         </div>
 
         <div class="part-target-indicator">
-          <span>Active Paint Target:</span>
+          <span>Target / Joint:</span>
           <strong id="active-paint-part-label">Auto / Surface</strong>
         </div>
 
@@ -308,7 +355,7 @@
 
         <div class="char-panel-footer">
           <button type="button" id="btn-toggle-joints" class="btn-joint-toggle active">
-            9 JOINTS RIG: VISIBLE
+            10 JOINTS RIG: VISIBLE
           </button>
           <button type="button" id="btn-toggle-organ-pulse" class="btn-joint-toggle active">
             4D ORGAN PULSE: ON
@@ -422,7 +469,7 @@
     <div id="inventory-popup" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Color Palette Shading and Camera Settings">
       <div class="modal-card modal-lg">
         <div class="modal-header">
-          <h3>COLOR PALETTE, 4D ANATOMY &amp; CAMERA SETTINGS</h3>
+          <h3>COLOR PALETTE, HYPERBUILD 4D ANATOMY &amp; CAMERA SETTINGS</h3>
           <div class="modal-header-actions">
             <button type="button" id="btn-inv-eyedropper" class="btn-hud btn-orange">EYEDROPPER TOOL</button>
             <button type="button" class="btn-hud btn-green" data-close="inventory-popup">RETURN TO EDITOR [E]</button>
@@ -455,10 +502,14 @@
               </div>
 
               <div class="organ-generator-box">
-                <span class="section-kicker">HYPERBUILD 4D ANATOMY PRESETS:</span>
+                <span class="section-kicker">HYPERBUILD 4D PROPORTIONAL CHARACTER &amp; ORGANS:</span>
+                <div class="inv-head-size-row">
+                  <label for="inv-head-size-input">Head Cube Size (Body follows proportionally):</label>
+                  <input id="inv-head-size-input" type="number" min="8" max="28" step="2" value="16" />
+                </div>
                 <div class="organ-preset-btns">
                   <button type="button" id="btn-regen-char-full" class="btn-hud btn-orange">
-                    Rebuild Character + All 9 Organs
+                    Rebuild Proportional Character + Organs
                   </button>
                   <button type="button" id="btn-regen-organs-only" class="btn-hud btn-purple">
                     Regenerate Internal Organs Only
@@ -471,14 +522,14 @@
       </div>
     </div>
 
-    <!-- ==================== POPUP 5: HYPERBUILD 4D / 4D MINER EXPORT MODAL ==================== -->
-    <div id="export-popup" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Export 4D Miner Volumetric Sheet and Hyperbuild 4D Organ Rig">
+    <!-- ==================== POPUP 5: HYPERBUILD 4D (.HB & VOLUMETRIC) EXPORT MODAL ==================== -->
+    <div id="export-popup" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Export Hyperbuild 4D .hb Structure and Volumetric Sheet">
       <div class="modal-card modal-xl">
         <div class="modal-header">
           <div>
-            <h3>EXPORT HYPERBUILD 4D &amp; 4D MINER VOLUMETRIC SHEET</h3>
+            <h3>EXPORT HYPERBUILD 4D (.HB) &amp; VOLUMETRIC RIG</h3>
             <p class="modal-sub">
-              Exports complete 3D/4D volumetric cross-section slice PNG atlas preserving all internal organs, outer shell, 9 joints &amp; Hyperbuild 4D rig metadata
+              Exports complete Hyperbuild 4D (.hb) character structure with head size, proportional body scale, per-voxel XYZ coordinates, RGBA colors, and joint-following hierarchy
             </p>
           </div>
           <button type="button" class="btn-close-modal" data-close="export-popup" aria-label="Close Export Modal">X</button>
@@ -486,16 +537,19 @@
 
         <div class="export-body-grid">
           <div class="export-controls-col">
-            <span class="section-kicker">SELECT 4D MINER / HYPERBUILD 4D ATLAS FORMAT:</span>
+            <span class="section-kicker">SELECT HYPERBUILD 4D EXPORT FORMAT:</span>
             <div class="export-mode-tabs">
-              <button type="button" class="btn-export-mode active" data-emode="4dminer-volumetric">
-                1. 4D MINER VOLUMETRIC ORGAN ATLAS (4D W-Layers + Z-Slices)
+              <button type="button" class="btn-export-mode active" data-emode="hb-structure">
+                1. HYPERBUILD 4D STRUCTURE (.hb) — Head Size + XYZ Voxels + Colors + Joint Bindings
+              </button>
+              <button type="button" class="btn-export-mode" data-emode="hyperbuild-volumetric">
+                2. HYPERBUILD 4D VOLUMETRIC ORGAN ATLAS (.png — W-Layers + Z-Slices)
               </button>
               <button type="button" class="btn-export-mode" data-emode="anatomical-20parts">
-                2. 20-PART ANATOMICAL SLICE SHEET (11 Outer + 9 Internal Organs)
+                3. 20-PART ANATOMICAL SLICE SHEET (.png — 11 Outer + 9 Internal Organs)
               </button>
               <button type="button" class="btn-export-mode" data-emode="raw-z-strip">
-                3. RAW 3D TEXTURE Z-SLICE STRIP (gridX×gridZ × gridY)
+                4. RAW 3D TEXTURE Z-SLICE STRIP (.png — gridX×gridZ × gridY)
               </button>
             </div>
 
@@ -505,71 +559,71 @@
             </div>
 
             <div class="export-spec-summary">
-              <h4>Hyperbuild 4D Export Package Contents:</h4>
+              <h4>Hyperbuild 4D (.hb) Specification &amp; Package Contents:</h4>
               <ul>
                 <li>
-                  <strong class="text-gold">1. [name].png (4D Miner Volumetric Sheet):</strong>
-                  Unlike hollow Minecraft skins, this encodes full 3D/4D cross-section Z-slices across W-anatomy layers (Epidermis/Apparel, Skeleton/Ribs, 9 Volumetric Internal Organs &amp; 4D Hyper-Core).
+                  <strong class="text-gold">1. [name].hb (Hyperbuild 4D Structure File):</strong>
+                  Contains Character Head Size (<span id="export-hb-head-label">16×16×16</span>), proportional body dimensions, all 10 skeletal joints, and every voxel's exact <code>[x, y, z]</code> coordinate, <code>color</code>, <code>partId</code>, and <code>followJoint</code> binding.
                 </li>
                 <li>
-                  <strong class="text-lime">2. [name]_rig_4d_organs.json:</strong>
-                  Exact 3D bounds, voxel counts, tissue types, damage multipliers, and UV-W slice coordinates for all 11 Outer Parts, 9 Internal Organs, and 9 Skeletal Joints.
+                  <strong class="text-lime">2. [name].png (Volumetric Cross-Section Sheet):</strong>
+                  Encodes full 3D/4D cross-section Z-slices across W-anatomy layers (Outer Shell, Skeleton/Ribs, and 9 Volumetric Internal Organs).
                 </li>
                 <li>
-                  <strong class="text-cyan">3. [name]_hyperbuild_spec.txt:</strong>
-                  Complete Hyperbuild 4D engine loader &amp; shader reconstruction specification.
+                  <strong class="text-cyan">3. [name]_rig_4d_organs.json &amp; .txt:</strong>
+                  Supplemental Hyperbuild 4D rig metadata and reconstruction documentation.
                 </li>
               </ul>
             </div>
 
             <div class="export-download-actions">
-              <button type="button" id="btn-download-all-export" class="btn-primary-green">
-                EXPORT &amp; DOWNLOAD ALL 3 FILES (ENTER)
+              <button type="button" id="btn-download-hb-primary" class="btn-primary-orange">
+                EXPORT HYPERBUILD 4D (.HB) FILE (ENTER)
               </button>
               <div class="export-single-btns">
-                <button type="button" id="btn-download-png-only" class="btn-hud btn-blue">PNG Sheet Only</button>
-                <button type="button" id="btn-download-json-only" class="btn-hud btn-slate">4D Rig JSON Only</button>
-                <button type="button" id="btn-download-txt-only" class="btn-hud btn-slate">Engine Spec .TXT</button>
+                <button type="button" id="btn-download-all-export" class="btn-hud btn-green">All 4 Files (.hb+.png+.json+.txt)</button>
+                <button type="button" id="btn-download-png-only" class="btn-hud btn-blue">PNG Sheet (.png)</button>
+                <button type="button" id="btn-download-json-only" class="btn-hud btn-slate">Rig JSON (.json)</button>
+                <button type="button" id="btn-download-txt-only" class="btn-hud btn-slate">Spec (.txt)</button>
               </div>
             </div>
           </div>
 
           <div class="export-preview-col">
             <div class="export-preview-header">
-              <span id="export-sheet-dims-label">LIVE 4D MINER PNG SHEET PREVIEW (256×256)</span>
+              <span id="export-sheet-dims-label">LIVE HYPERBUILD 4D (.HB) &amp; ATLAS PREVIEW</span>
             </div>
             <div class="export-canvas-frame">
               <canvas id="export-preview-canvas" width="256" height="256"></canvas>
             </div>
-            <p class="export-preview-note">
-              Every pixel in this 4D Miner sheet represents an actual 3D voxel inside the character's outer shell, skeleton, or internal organs.
-            </p>
+            <pre id="export-hb-live-snippet" class="hb-snippet-box" aria-label="Live .hb Structure Preview"></pre>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ==================== POPUP 6: SAVE PROJECT AS (.HT3D) ==================== -->
-    <div id="saveas-popup" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Save Project As HT3D">
+    <!-- ==================== POPUP 6: SAVE PROJECT AS (.HT3D / .HB) ==================== -->
+    <div id="saveas-popup" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Save Project As HT3D or HB">
       <div class="modal-card modal-sm">
         <div class="modal-header">
-          <h3>SAVE PROJECT AS (.HT3D)</h3>
+          <h3>SAVE PROJECT AS (.HB / .HT3D)</h3>
           <button type="button" class="btn-close-modal" data-close="saveas-popup" aria-label="Close Save As Modal">X</button>
         </div>
         <div class="export-filename-field">
-          <label for="saveas-filename-input">Project Filename (.ht3d binary):</label>
-          <input id="saveas-filename-input" type="text" value="hyperbuild_4d_project.ht3d" />
+          <label for="saveas-filename-input">Project Filename (.hb or .ht3d):</label>
+          <input id="saveas-filename-input" type="text" value="hyperbuild_4d_character.hb" />
         </div>
-        <p class="modal-sub">100% binary-compatible with HyperTex3D HTV2 format.</p>
+        <p class="modal-sub">Use .hb for Hyperbuild 4D structure (Head size, XYZ, Color, Joint follow) or .ht3d for raw binary.</p>
         <div class="modal-footer-btns">
-          <button type="button" id="btn-saveas-confirm" class="btn-hud btn-green">SAVE .HT3D FILE (ENTER)</button>
+          <button type="button" id="btn-saveas-confirm" class="btn-hud btn-green">SAVE FILE (ENTER)</button>
           <button type="button" class="btn-hud btn-maroon" data-close="saveas-popup">CANCEL (ESC)</button>
         </div>
       </div>
     </div>
 
-    <!-- Hidden File Input for Loading .ht3d Project Files -->
-    <input type="file" id="load-ht3d-input" accept=".ht3d" hidden />
+    <!-- Hidden File Inputs for Loading .hb and .ht3d Project Files -->
+    <input type="file" id="load-hb-input" accept=".hb,.json" hidden />
+    <input type="file" id="load-ht3d-input" accept=".ht3d,.hb" hidden />
 
     <script type="module" src="./script.js"></script>
   </body>
